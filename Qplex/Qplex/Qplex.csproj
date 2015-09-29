@@ -40,6 +40,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Communication\Channels\InternalChannel.cs" />
+    <Compile Include="Communication\Communication.cs" />
+    <Compile Include="Communication\Handlers\Broadcaster.cs" />
+    <Compile Include="Communication\Handlers\Communicator.cs" />
+    <Compile Include="Communication\Handlers\Dispatcher.cs" />
+    <Compile Include="Communication\Handlers\DispatcherThread.cs" />
+    <Compile Include="Layers\ILayer.cs" />
+    <Compile Include="Layers\Layer.cs" />
+    <Compile Include="Messages\Message.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
