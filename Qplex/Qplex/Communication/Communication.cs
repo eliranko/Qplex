@@ -1,6 +1,4 @@
-﻿using Qplex.Messages;
-
-namespace Qplex.Communication
+﻿namespace Qplex.Communication
 {
     /// <summary>
     /// Communication singelton
@@ -19,11 +17,5 @@ namespace Qplex.Communication
         /// Singelton instance
         /// </summary>
         public static Communication Instance = new Communication();
-
-        /// <summary>
-        /// Message handler template
-        /// </summary>
-        /// <param name="message">Message to handle</param>
-        public delegate void MessageHandler(Message message);
     }
 }

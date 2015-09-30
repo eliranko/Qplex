@@ -64,7 +64,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="messageType">Message type</param>
         /// <param name="messageHandler">Message handler</param>
         /// <param name="threadName">Handling thread name</param>
-        public void AddHandler(Type messageType, Communication.MessageHandler messageHandler, string threadName = "")
+        public void AddHandler(Type messageType, Delegate messageHandler, string threadName = "")
         {
             //TODO: Log
             var dispatcherThread = GetThread(threadName);
