@@ -1,4 +1,5 @@
-﻿using Qplex.Communication.Handlers;
+﻿using System;
+using Qplex.Communication.Handlers;
 
 namespace Qplex.Layers
 {
@@ -7,6 +8,16 @@ namespace Qplex.Layers
     /// </summary>
     public abstract class Layer : Communicator ,ILayer
     {
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="messagesIteratorType">Messages iterator type</param>
+        protected Layer(Type messagesIteratorType)
+            : base (messagesIteratorType)
+        {
+            
+        }
+
         public abstract bool Init();
 
         public override bool Start()

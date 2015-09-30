@@ -1,5 +1,6 @@
 ﻿using System;
 using Qplex.Messages;
+using Qplex.Messages.Handlers;
 
 namespace Qplex.Communication.Handlers
 {
@@ -16,9 +17,16 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Ctor
         /// </summary>
-        public Communicator()
+        /// <param name="messagesIteratorType">Messages iterator type</param>
+        public Communicator(Type messagesIteratorType)
         {
-            _dispatcher = new Dispatcher();
+            if (messagesIteratorType != typeof (IMessagesIterator))
+            {
+                Qplex.Instance.CloseApplication(
+                    $"Message iterator type received does not impelements IMessagesIterator interface: {messagesIteratorType.FullName}");
+            }
+
+            _dispatcher = new Dispatcher(messagesIteratorType);
         }
 
         /// <summary>
@@ -29,17 +37,26 @@ namespace Qplex.Communication.Handlers
         {
             //TODO: Log
             //TODO: Iterate over message handlers and add them to the dispatcher
+            _dispatcher.Start();
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Stop dispatcher threads
+        /// </summary>
+        public void Stop()
+        {
+            _dispatcher.Stop();
         }
 
         /// <summary>
         /// New incoming message
         /// </summary>
-        /// <param name="message">New message</param>
+        /// <param name="message">New received message</param>
         public void NewMessage(Message message)
         {
             //TODO: Log
-            _dispatcher.HandleMessage(message);
+            _dispatcher.Dispatch(message);
         }
     }
 }
