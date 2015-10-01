@@ -23,5 +23,18 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         /// <param name="message">New received message</param>
         void NewMessage(Message message);
+
+        /// <summary>
+        /// Notify self the message
+        /// </summary>
+        /// <param name="message">Message</param>
+        void Notify(Message message);
+
+        /// <summary>
+        /// Delayed notify self the message
+        /// </summary>
+        /// <param name="message">Message</param>
+        /// <param name="milliseconds">Delay time</param>
+        void DelayedNotify(Message message, int milliseconds);
     }
 }

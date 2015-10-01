@@ -47,7 +47,7 @@ namespace Qplex.Communication.Channels
         }
 
         /// <summary>
-        /// Broadcast message
+        /// Broadcast message to all but the caller
         /// </summary>
         /// <param name="message">Message</param>
         /// <param name="callerGuid">Caller guid</param>
@@ -57,10 +57,8 @@ namespace Qplex.Communication.Channels
                 subscriber.GetType().GetInterfaces().Contains(typeof(ICommunicator))))
             {
                 //TODO: Log
-                if (subscriber.BroadcasterGuid != callerGuid)
-                {
-                    ((Communicator)subscriber).NewMessage(message);
-                }
+                if (subscriber.BroadcasterGuid == callerGuid) continue;;
+                ((Communicator)subscriber).NewMessage(message);
             }
         }
     }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Qplex.Attributes;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
@@ -61,6 +63,26 @@ namespace Qplex.Communication.Handlers
         {
             //TODO: Log
             _dispatcher.Dispatch(message);
+        }
+
+        /// <summary>
+        /// Notify self the message
+        /// </summary>
+        /// <param name="message">Message</param>
+        public void Notify(Message message)
+        {
+            Task.Factory.StartNew(() => NewMessage(message));
+        }
+
+        /// <summary>
+        /// Delayed notify self the message
+        /// </summary>
+        /// <param name="message">Message</param>
+        /// <param name="milliseconds">Delay time</param>
+        public void DelayedNotify(Message message, int milliseconds)
+        {
+            Thread.Sleep(milliseconds);
+            NewMessage(message);
         }
 
         #region Reflection
