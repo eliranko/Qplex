@@ -12,7 +12,7 @@ namespace Qplex.Communication.Handlers
     /// <summary>
     /// Communicator broadcasts and receives messages.
     /// </summary>
-    public class Communicator : Broadcaster
+    public class Communicator : Broadcaster, ICommunicator
     {
         /// <summary>
         /// Dispatcher
@@ -25,7 +25,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="messagesIteratorType">Messages iterator type</param>
         public Communicator(Type messagesIteratorType)
         {
-            if (messagesIteratorType != typeof (IMessagesIterator))
+            if (!messagesIteratorType.GetInterfaces().Contains(typeof(IMessagesIterator)))
             {
                 Qplex.Instance.CloseApplication(
                     $"Message iterator type received does not impelements IMessagesIterator interface: {messagesIteratorType.FullName}");
@@ -35,7 +35,7 @@ namespace Qplex.Communication.Handlers
         }
 
         /// <summary>
-        /// Start receiving thread
+        /// Load message handlers using reflection, and start dispatcher threads
         /// </summary>
         /// <returns></returns>
         public virtual bool Start()
@@ -68,7 +68,7 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Load message handlers using reflectoin
         /// </summary>
-        public void LoadMessageHandlers()
+        private void LoadMessageHandlers()
         {
             //TODO: Log
             var methods = GetMethodsDecoratedByAttribute(GetTopDerivedClass(), typeof (MessageHandler));
@@ -88,22 +88,31 @@ namespace Qplex.Communication.Handlers
         /// <returns>Top derived class</returns>
         private Type GetTopDerivedClass()
         {
-            var derviedClass = from types in Assembly.GetExecutingAssembly().GetTypes()
-                    where types.IsSubclassOf(typeof(Communicator)) && types.GUID == GetType().GUID
-                    select types;
+            Type topClass = null;
 
-            return derviedClass.FirstOrDefault();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var derivedClass = from type in assembly.GetTypes()
+                    where type.GetInterfaces().Contains(typeof (ICommunicator)) && type.GUID == GetType().GUID
+                    select type;
+
+                topClass = derivedClass.FirstOrDefault();
+
+                if(topClass != null) break;
+            }
+
+            return topClass;
         }
 
         /// <summary>
         /// Get methods of the given type, decorated by the given attribute.
         /// </summary>
-        /// <param name="type">Object type</param>
+        /// <param name="objectType">Object type</param>
         /// <param name="attributeType">Decorating attribute</param>
         /// <returns></returns>
-        private MethodInfo[] GetMethodsDecoratedByAttribute(Type type, Type attributeType)
+        private IEnumerable<MethodInfo> GetMethodsDecoratedByAttribute(Type objectType, Type attributeType)
         {
-            return (MethodInfo[]) type.GetMethods().Where(method => method.GetCustomAttributes(attributeType).Any());
+            return objectType.GetMethods().Where(method => method.GetCustomAttributes(attributeType).Any());
         }
 
         /// <summary>
@@ -155,7 +164,8 @@ namespace Qplex.Communication.Handlers
                     Qplex.Instance.CloseApplication($"MessageHandler {methodInfo.Name} should have 1 parameter!");
                 }
 
-                if (parameters.First().ParameterType != typeof (Message))
+                if (parameters.First().ParameterType != typeof (Message)  &&
+                    !(parameters.First().ParameterType.IsSubclassOf(typeof(Message))))
                 {
                     Qplex.Instance.CloseApplication($"MessageHandler {methodInfo.Name} parameter should inherit Message!");
                 }

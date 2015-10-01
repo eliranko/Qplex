@@ -73,7 +73,7 @@ namespace Qplex.Communication.Handlers
             if (dispatcherThread == null)
             {
                 //TODO: Log
-                CreateThread(threadName);
+                dispatcherThread = CreateThread(threadName);
             }
 
 // ReSharper disable once PossibleNullReferenceException
@@ -119,10 +119,12 @@ namespace Qplex.Communication.Handlers
         /// Create DispatcherThread with the given name
         /// </summary>
         /// <param name="name">New thread's name</param>
-        private void CreateThread(string name)
+        private DispatcherThread CreateThread(string name)
         {
-            var messagesIteratorInstance = (IMessagesIterator) Activator.CreateInstance(_messagesIteratorType);
-            _threadsList.Add(new DispatcherThread(name, messagesIteratorInstance));
+            var thread = new DispatcherThread(name, (IMessagesIterator) Activator.CreateInstance(_messagesIteratorType));
+            _threadsList.Add(thread);
+
+            return thread;
         }
 
         #endregion

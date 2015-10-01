@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
@@ -48,13 +49,18 @@ namespace Qplex.Communication.Channels
         /// <summary>
         /// Broadcast message
         /// </summary>
-        /// <param name="message"></param>
-        public void Broadcast(Message message)
+        /// <param name="message">Message</param>
+        /// <param name="callerGuid">Caller guid</param>
+        public void Broadcast(Message message, Guid callerGuid)
         {
-            foreach (var subscriber in _subscribersList.Where(subscriber => subscriber.GetType() == typeof (Communicator)))
+            foreach (var subscriber in _subscribersList.Where(subscriber => 
+                subscriber.GetType().GetInterfaces().Contains(typeof(ICommunicator))))
             {
                 //TODO: Log
-                ((Communicator) subscriber).NewMessage(message);
+                if (subscriber.BroadcasterGuid != callerGuid)
+                {
+                    ((Communicator)subscriber).NewMessage(message);
+                }
             }
         }
     }

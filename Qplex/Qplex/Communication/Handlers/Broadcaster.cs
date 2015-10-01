@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Qplex.Communication.Channels;
 using Qplex.Messages;
 
@@ -7,8 +8,13 @@ namespace Qplex.Communication.Handlers
     /// <summary>
     /// Broadcaster broadcasrs message, but cannot receive messages.
     /// </summary>
-    public class Broadcaster
+    public class Broadcaster : IBroadcaster
     {
+        /// <summary>
+        /// Type guid
+        /// </summary>
+        public Guid BroadcasterGuid { get; }
+
         /// <summary>
         /// Channels list
         /// </summary>
@@ -20,6 +26,7 @@ namespace Qplex.Communication.Handlers
         public Broadcaster()
         {
             _channelsList = new List<InternalChannel>();
+            BroadcasterGuid = GetType().GUID;
         }
 
         /// <summary>
@@ -42,7 +49,7 @@ namespace Qplex.Communication.Handlers
             //TODO: Log
             foreach (var channel in _channelsList)
             {
-                channel.Broadcast(message);
+                channel.Broadcast(message, BroadcasterGuid);
             }
         }
     }

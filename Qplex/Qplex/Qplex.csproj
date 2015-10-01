@@ -46,10 +46,13 @@
     <Compile Include="Communication\Handlers\Communicator.cs" />
     <Compile Include="Communication\Handlers\Dispatcher.cs" />
     <Compile Include="Communication\Handlers\DispatcherThread.cs" />
+    <Compile Include="Communication\Handlers\IBroadcaster.cs" />
+    <Compile Include="Communication\Handlers\ICommunicator.cs" />
     <Compile Include="Container.cs" />
     <Compile Include="Layers\ILayer.cs" />
     <Compile Include="Layers\Layer.cs" />
     <Compile Include="Messages\Handlers\IMessagesIterator.cs" />
+    <Compile Include="Messages\Handlers\QueueMessagesIterator.cs" />
     <Compile Include="Messages\Message.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Qplex.cs" />

@@ -18,13 +18,10 @@ namespace Qplex.Layers
             
         }
 
-        public override bool Start()
-        {
-            //TODO: Log
-            var status = base.Start();
-            return status;
-        }
-
+        /// <summary>
+        /// Layer's init method. Initiate everything the layer needs before starting.
+        /// </summary>
+        /// <returns>Operation status. True on success, false otherwise.</returns>
         public abstract bool Init();
     }
 }
