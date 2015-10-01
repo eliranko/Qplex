@@ -42,11 +42,11 @@
   <ItemGroup>
     <Compile Include="Attributes\MessageHandler.cs" />
     <Compile Include="Communication\Channels\InternalChannel.cs" />
-    <Compile Include="Communication\Communication.cs" />
     <Compile Include="Communication\Handlers\Broadcaster.cs" />
     <Compile Include="Communication\Handlers\Communicator.cs" />
     <Compile Include="Communication\Handlers\Dispatcher.cs" />
     <Compile Include="Communication\Handlers\DispatcherThread.cs" />
+    <Compile Include="Container.cs" />
     <Compile Include="Layers\ILayer.cs" />
     <Compile Include="Layers\Layer.cs" />
     <Compile Include="Messages\Handlers\IMessagesIterator.cs" />

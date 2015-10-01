@@ -41,9 +41,8 @@ namespace Qplex.Communication.Handlers
         public virtual bool Start()
         {
             //TODO: Log
-            //TODO: Iterate over message handlers and add them to the dispatcher
-            _dispatcher.Start();
-            throw new NotImplementedException();
+            LoadMessageHandlers();
+            return _dispatcher.Start();
         }
 
         /// <summary>
