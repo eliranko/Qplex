@@ -36,14 +36,17 @@ namespace Qplex.Communication.Channels
         /// <param name="broadcaster">Subscriber</param>
         public void Subscribe(Broadcaster broadcaster)
         {
-            if (broadcaster == null)
-            {
-                //TODO: Log
-                return;
-            }
-
             //TODO: Log
             _subscribersList.Add(broadcaster);
+        }
+
+        /// <summary>
+        /// Unsubscribe from channel
+        /// </summary>
+        /// <param name="broadcaster">Subscriber</param>
+        public void Unsubscribe(Broadcaster broadcaster)
+        {
+            _subscribersList.Remove(broadcaster);
         }
 
         /// <summary>

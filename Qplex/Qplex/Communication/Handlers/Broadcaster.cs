@@ -41,6 +41,17 @@ namespace Qplex.Communication.Handlers
         }
 
         /// <summary>
+        /// Unsubscribe from channel
+        /// </summary>
+        /// <param name="internalChannel">Channel</param>
+        public void UnsubscribeFromChannel(InternalChannel internalChannel)
+        {
+            //TODO: Log
+            _channelsList.Remove(internalChannel); // TODO: Test if works
+            internalChannel.Unsubscribe(this);
+        }
+
+        /// <summary>
         /// Broadcast message to channels
         /// </summary>
         /// <param name="message">Message to broadcast</param>

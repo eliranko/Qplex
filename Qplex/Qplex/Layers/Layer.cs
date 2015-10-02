@@ -8,6 +8,15 @@ namespace Qplex.Layers
     /// </summary>
     public abstract class Layer : Communicator, ILayer
     {
+        #region Constructors
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        protected Layer()
+        {
+            
+        }
+
         /// <summary>
         /// Ctor
         /// </summary>
@@ -17,6 +26,7 @@ namespace Qplex.Layers
         {
             
         }
+        #endregion
 
         /// <summary>
         /// Layer's init method. Initiate everything the layer needs before starting.

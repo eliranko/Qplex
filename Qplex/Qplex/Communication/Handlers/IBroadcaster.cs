@@ -21,6 +21,12 @@ namespace Qplex.Communication.Handlers
         void SubscribeToChannel(InternalChannel internalChannel);
 
         /// <summary>
+        /// Unsubscribe from channel
+        /// </summary>
+        /// <param name="internalChannel">Channel</param>
+        void UnsubscribeFromChannel(InternalChannel internalChannel);
+
+        /// <summary>
         /// Broadcast message to channels
         /// </summary>
         /// <param name="message">Message to broadcast</param>

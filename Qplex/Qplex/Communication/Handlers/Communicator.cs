@@ -21,6 +21,15 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         private readonly Dispatcher _dispatcher;
 
+        #region Constructors
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        public Communicator()
+        {
+            _dispatcher = new Dispatcher(typeof(QueueMessagesIterator));
+        }
+
         /// <summary>
         /// Ctor
         /// </summary>
@@ -35,6 +44,7 @@ namespace Qplex.Communication.Handlers
 
             _dispatcher = new Dispatcher(messagesIteratorType);
         }
+        #endregion
 
         /// <summary>
         /// Load message handlers using reflection, and start dispatcher threads
@@ -50,7 +60,7 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Stop dispatcher threads
         /// </summary>
-        public void Stop()
+        public virtual void Stop()
         {
             _dispatcher.Stop();
         }
