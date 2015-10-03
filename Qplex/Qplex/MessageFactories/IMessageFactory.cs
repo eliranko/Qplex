@@ -1,4 +1,5 @@
-﻿using Qplex.Messages;
+﻿using Qplex.FramingAlgorithms;
+using Qplex.Messages;
 
 namespace Qplex.MessageFactories
 {
@@ -8,17 +9,17 @@ namespace Qplex.MessageFactories
     public interface IMessageFactory
     {
         /// <summary>
-        /// Serialize message to bytes
+        /// Serialize message to frame
         /// </summary>
         /// <param name="message">Message</param>
-        /// <returns>Byte array</returns>
-        byte[] Serialize(Message message);
+        /// <returns>Frame</returns>
+        Frame Serialize(Message message);
 
         /// <summary>
-        /// Deserialize byte to message
+        /// Deserialize frame to message
         /// </summary>
-        /// <param name="bytes">Bytes</param>
+        /// <param name="frame">Frame</param>
         /// <returns>Message</returns>
-        Message Deserialize(byte[] bytes);
+        Message Deserialize(Frame frame);
     }
 }

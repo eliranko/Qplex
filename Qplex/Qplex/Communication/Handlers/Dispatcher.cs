@@ -9,7 +9,8 @@ namespace Qplex.Communication.Handlers
     /// <summary>
     /// Dispatches messages between threads
     /// </summary>
-    public class Dispatcher
+    /// <typeparam name="TIterator">Message iterator</typeparam>
+    public class Dispatcher<TIterator> where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Threads list
@@ -17,17 +18,10 @@ namespace Qplex.Communication.Handlers
         private readonly IList<DispatcherThread> _threadsList;
 
         /// <summary>
-        /// Messages iterator type to be used by this dispatcher's threads
-        /// </summary>
-        private readonly Type _messagesIteratorType;
-
-        /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="messagesIteratorType">Messages iterator type</param>
-        public Dispatcher(Type messagesIteratorType)
+        public Dispatcher()
         {
-            _messagesIteratorType = messagesIteratorType;
             _threadsList = new List<DispatcherThread>();
         }
 
@@ -121,7 +115,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="name">New thread's name</param>
         private DispatcherThread CreateThread(string name)
         {
-            var thread = new DispatcherThread(name, (IMessagesIterator) Activator.CreateInstance(_messagesIteratorType));
+            var thread = new DispatcherThread(name, new TIterator());
             _threadsList.Add(thread);
 
             return thread;

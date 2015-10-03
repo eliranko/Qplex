@@ -1,34 +1,35 @@
 ﻿using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using Qplex.FramingAlgorithms;
 using Qplex.Messages;
 
 namespace Qplex.MessageFactories
 {
     /// <summary>
-    /// Memory stream message factory
+    /// Message factory which serializes and deserialize Message object as is
     /// </summary>
-    public class MsMessageFactory : IMessageFactory
+    public class MessageObjectMessageFactory : IMessageFactory
     {
         /// <summary>
-        /// Serialize message to bytes
+        /// Serialize message to frame
         /// </summary>
         /// <param name="message">Message</param>
-        /// <returns>Byte array</returns>
-        public byte[] Serialize(Message message)
+        /// <returns>Frame</returns>
+        public Frame Serialize(Message message)
         {
             var memoryStream = new MemoryStream();
             new BinaryFormatter().Serialize(memoryStream, message);
-            return memoryStream.ToArray();
+            return new Frame(memoryStream.ToArray());
         }
 
         /// <summary>
-        /// Deserialize byte to message
+        /// Deserialize frame to message
         /// </summary>
-        /// <param name="bytes">Bytes</param>
+        /// <param name="frame">Frame</param>
         /// <returns>Message</returns>
-        public Message Deserialize(byte[] bytes)
+        public Message Deserialize(Frame frame)
         {
-            var memoryStream = new MemoryStream(bytes);
+            var memoryStream = new MemoryStream(frame.Buffer);
             memoryStream.Seek(0, SeekOrigin.Begin);
             return (Message) new BinaryFormatter().Deserialize(memoryStream);
         }

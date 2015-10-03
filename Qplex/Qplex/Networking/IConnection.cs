@@ -8,9 +8,19 @@ namespace Qplex.Networking
     public interface IConnection : IBroadcaster
     {
         /// <summary>
-        /// Send bytes over socket
+        /// Connect
         /// </summary>
-        /// <param name="bytes">Bytes</param>
-        void Send(byte[] bytes);
+        void Connect();
+
+        /// <summary>
+        /// Close connection
+        /// </summary>
+        void Close();
+
+        /// <summary>
+        /// Send buffer over socket
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        void Send(byte[] buffer);
     }
 }

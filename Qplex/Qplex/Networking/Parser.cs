@@ -1,13 +1,19 @@
 ﻿using Qplex.Attributes;
 using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
+using Qplex.FramingAlgorithms;
 using Qplex.MessageFactories;
 using Qplex.Messages;
+using Qplex.Messages.Handlers;
 using Qplex.Messages.Networking;
 
 namespace Qplex.Networking
 {
-    public class Parser : Communicator
+    /// <summary>
+    /// Parser sends and receives Message objects.
+    /// </summary>
+    /// <typeparam name="TIterator">Messages iterator</typeparam>
+    public class Parser<TIterator> : Communicator<TIterator> where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Connectoin
@@ -20,18 +26,41 @@ namespace Qplex.Networking
         private readonly IMessageFactory _messageFactory;
 
         /// <summary>
+        /// Framing algorithm
+        /// </summary>
+        private readonly IFramingAlgorithm _framingAlgorithm;
+
+        /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="connection">Connection</param>
         /// <param name="messageFactory">Message factory</param>
-        public Parser(IConnection connection, IMessageFactory messageFactory)
+        /// <param name="framingAlgorithm">Framing algorithm</param>
+        public Parser(IConnection connection, IMessageFactory messageFactory, IFramingAlgorithm framingAlgorithm)
         {
             _connection = connection;
             _messageFactory = messageFactory;
+            _framingAlgorithm = framingAlgorithm;
             var channel = new InternalChannel(
                 $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToConnectionChannel");
             SubscribeToChannel(channel);
             _connection.SubscribeToChannel(channel);
+        }
+
+        /// <summary>
+        /// Connect
+        /// </summary>
+        public void Connect()
+        {
+            _connection.Connect();
+        }
+
+        /// <summary>
+        /// Close conneciton
+        /// </summary>
+        public void Close()
+        {
+            _connection.Close();
         }
 
         /// <summary>
@@ -40,18 +69,36 @@ namespace Qplex.Networking
         /// <param name="message">Message</param>
         public void Send(Message message)
         {
-            _connection.Send(_messageFactory.Serialize(message));
+            _connection.Send(_framingAlgorithm.FrameBuffer(_messageFactory.Serialize(message)));
         }
 
         /// <summary>
-        /// Handle new message received
+        /// Handle received buffer
         /// </summary>
-        /// <param name="message">SerializedMessageReceivedMessage</param>
+        /// <param name="message">NewBufferReceivedMessage</param>
         [MessageHandler]
-        public void HandleNewMessageReceivedMessage(SerializedMessageReceivedMessage message)
+        public void HandleNewBufferReceivedMessage(BufferReceivedMessage message)
         {
             //TODO: Log
-            Broadcast(new DeserializedMessage(_messageFactory.Deserialize(message.MessageArray)));
+            Broadcast(new UnframedBufferMessage(
+                _messageFactory.Deserialize(_framingAlgorithm.UnframeBuffer(message.Buffer))));
+        }
+    }
+
+    /// <summary>
+    /// Parser implemented using queue message iterator
+    /// </summary>
+    public class Parser : Parser<QueueMessagesIterator>
+    {
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="connection">Connection</param>
+        /// <param name="messageFactory">Message factory</param>
+        /// <param name="framingAlgorithm">Framing algorithm</param>
+        public Parser(IConnection connection, IMessageFactory messageFactory, IFramingAlgorithm framingAlgorithm) 
+            : base(connection, messageFactory, framingAlgorithm)
+        {
         }
     }
 }

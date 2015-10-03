@@ -1,10 +1,16 @@
 ﻿using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
+using Qplex.Messages.Handlers;
 
 namespace Qplex.Networking
 {
-    public class Protocol : Communicator
+    /// <summary>
+    /// Protocol wraps agent and handles low level network message, that the layer isn't
+    /// interested about (such as keep-alive).
+    /// </summary>
+    /// <typeparam name="TIterator">Messages iterator</typeparam>
+    public class Protocol<TIterator> : Communicator<TIterator> where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Network agent
@@ -38,6 +44,22 @@ namespace Qplex.Networking
         }
 
         /// <summary>
+        /// Connect
+        /// </summary>
+        public void Connect()
+        {
+            _agent.Connect();
+        }
+
+        /// <summary>
+        /// Close conneciton
+        /// </summary>
+        public void Close()
+        {
+            _agent.Close();
+        }
+
+        /// <summary>
         /// Send message
         /// </summary>
         /// <param name="message">Message</param>
@@ -45,5 +67,13 @@ namespace Qplex.Networking
         {
             _agent.Send(message);
         }
+    }
+
+    /// <summary>
+    /// Protocol implemented with queue messgea iterator
+    /// </summary>
+    public class Protocol : Protocol<QueueMessagesIterator>
+    {
+        
     }
 }

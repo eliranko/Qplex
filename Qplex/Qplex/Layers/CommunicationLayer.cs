@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Qplex.Communication.Channels;
-using Qplex.MessageFactories;
-using Qplex.Networking;
+using Qplex.Messages.Handlers;
+using Qplex.Networking.NetService;
 
 namespace Qplex.Layers
 {
@@ -10,110 +9,74 @@ namespace Qplex.Layers
     /// Communication layer is used for in process messaging,
     /// and processes communication using Message object.
     /// </summary>
-    public abstract class CommunicationLayer: Layer
+    /// <typeparam name="TIterator">Message iterator</typeparam>
+    public abstract class CommunicationLayer<TIterator>: Layer<TIterator> where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Net services list
         /// </summary>
-        private IList<NetService<Protocol, Listener<IConnection, IMessageFactory>>> _netServicesList;
+        protected readonly IList<NetService<TIterator>> NetServicesList;
 
         /// <summary>
         /// Layer to services channel
         /// </summary>
-        private InternalChannel _layerToServicesChannel;
-
-        #region Constructors
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="netServicesList">Net services list</param>
-        protected CommunicationLayer(IEnumerable<NetService<Protocol, Listener<IConnection, IMessageFactory>>> netServicesList)
-        {
-            CreateLayer(netServicesList);
-        }
+        private readonly InternalChannel _layerToServicesChannel;
 
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="netService">Net service</param>
-        protected CommunicationLayer(NetService<Protocol, Listener<IConnection, IMessageFactory>> netService)
-        {
-            CreateLayer(netService);
-        }
-
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="messagesIteratorType">Messages iterator type</param>
-        /// <param name="netServicesList">Net services list</param>
-        protected CommunicationLayer(Type messagesIteratorType, IEnumerable<NetService<Protocol, Listener<IConnection, IMessageFactory>>> netServicesList)
-            : base(messagesIteratorType)
-        {
-            CreateLayer(netServicesList);
-        }
-
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="messagesIteratorType">Messages iterator type</param>
-        /// <param name="netService">Net services</param>
-        protected CommunicationLayer(Type messagesIteratorType, NetService<Protocol, Listener<IConnection, IMessageFactory>> netService)
-            : base(messagesIteratorType)
-        {
-            CreateLayer(netService);
-        }
-        #endregion
-
-        #region Constructors helpers
-        /// <summary>
-        /// Create layer
-        /// </summary>
-        /// <param name="netService"></param>
-        private void CreateLayer(NetService<Protocol, Listener<IConnection, IMessageFactory>> netService)
-        {
-            CreateChannel();
-            AddServiceToList(netService);
-        }
-
-        /// <summary>
-        /// Create layer
-        /// </summary>
-        /// <param name="netServicesList">Services list</param>
-        private void CreateLayer(IEnumerable<NetService<Protocol, Listener<IConnection, IMessageFactory>>> netServicesList)
-        {
-            CreateChannel();
-            foreach (var netService in netServicesList)
-            {
-                AddServiceToList(netService);
-            }
-        }
-
-        /// <summary>
-        /// Create channel and subscribe to it
-        /// </summary>
-        private void CreateChannel()
+        protected CommunicationLayer()
         {
             _layerToServicesChannel = new InternalChannel(
                 $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToServicesChannel");
             SubscribeToChannel(_layerToServicesChannel);
+
+            NetServicesList = new List<NetService<TIterator>>();
         }
 
         /// <summary>
-        /// Add service to list
+        /// Start net service
         /// </summary>
-        /// <param name="netService">Service</param>
-        private void AddServiceToList(NetService<Protocol, Listener<IConnection, IMessageFactory>> netService)
+        /// <returns>Operation status</returns>
+        public override bool Start()
         {
-            netService.SubscribeToChannel(_layerToServicesChannel);
-            if (_netServicesList == null)
+            var status = base.Start();
+            foreach (var netService in NetServicesList)
             {
-                _netServicesList = new List<NetService<Protocol, Listener<IConnection, IMessageFactory>>> {netService};
+                status &= netService.Start();
             }
-            else
+
+            return status;
+        }
+
+        /// <summary>
+        /// Stop net service
+        /// </summary>
+        public override void Stop()
+        {
+            base.Stop();
+            foreach (var netService in NetServicesList)
             {
-                _netServicesList.Add(netService);
+                netService.Stop();
             }
         }
-        #endregion
+
+        /// <summary>
+        /// Add service
+        /// </summary>
+        /// <param name="netService">Network service</param>
+        public void AddService(NetService<TIterator> netService)
+        {
+            netService.SubscribeToChannel(_layerToServicesChannel);
+            NetServicesList.Add(netService);
+        }
+    }
+
+    /// <summary>
+    /// Communication layer implemented using queue messages iterator
+    /// </summary>
+    public abstract class CommunicationLayer : CommunicationLayer<QueueMessagesIterator>
+    {
+        
     }
 }

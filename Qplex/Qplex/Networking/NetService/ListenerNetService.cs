@@ -1,46 +1,39 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Qplex.Attributes;
 using Qplex.Communication.Channels;
-using Qplex.Communication.Handlers;
-using Qplex.MessageFactories;
 using Qplex.Messages;
+using Qplex.Messages.Handlers;
 using Qplex.Messages.Networking;
 
-namespace Qplex.Networking
+namespace Qplex.Networking.NetService
 {
     /// <summary>
-    /// Net service warps listeners and protocols of a specific type.
+    /// Net service used for listening on incoming clients
     /// </summary>
-    /// <typeparam name="T">Protocol</typeparam>
-    /// <typeparam name="TU">Listener</typeparam>
-    public class NetService<T, TU> : Communicator where T : Protocol, new() where TU : Listener<IConnection, IMessageFactory>
+    /// <typeparam name="TIterator">Message iterator</typeparam>
+    /// <typeparam name="TProtocol">Protocol</typeparam>
+    public class ListenerNetService<TIterator, TProtocol> : NetService<TIterator> 
+        where TIterator : IMessagesIterator, new() where TProtocol : Protocol, new()
     {
         /// <summary>
         /// Protocols list
         /// </summary>
-        private readonly IList<T> _protocolsList;
+        private readonly IList<TProtocol> _protocolsList;
 
         /// <summary>
         /// Listener
         /// </summary>
-        private readonly TU _listener;
-
-        /// <summary>
-        /// Layer to protocols channel
-        /// </summary>
-        private readonly InternalChannel _serviceToProtocolsChannel;
+        private readonly Listener _listener;
 
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="listener">Listener</param>
-        public NetService(TU listener)
+        public ListenerNetService(Listener listener)
         {
             _listener = listener;
-            _protocolsList = new List<T>();
-            _serviceToProtocolsChannel = new InternalChannel(
-                $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToProtocolsChannel");
-            SubscribeToChannel(_serviceToProtocolsChannel);
+            _protocolsList = new List<TProtocol>();
             var serviceToListenerChannel = new InternalChannel(
                 $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToListenerChannel");
             SubscribeToChannel(serviceToListenerChannel);
@@ -57,19 +50,23 @@ namespace Qplex.Networking
         }
 
         /// <summary>
-        /// Stop listening
+        /// Stop listening and close all existing connecitons
         /// </summary>
         public override void Stop()
         {
             base.Stop();
             _listener.Stop();
+            foreach (var protocol in _protocolsList)
+            {
+                protocol.Close();
+            }
         }
 
         /// <summary>
         /// Send message
         /// </summary>
         /// <param name="message">Message</param>
-        public void Send(Message message)
+        public override void Send(Message message)
         {
             foreach (var protocol in _protocolsList)
             {
@@ -84,10 +81,27 @@ namespace Qplex.Networking
         [MessageHandler]
         public void HandleNewConnectionMessage(NewConnectionMessage message)
         {
-            var protocol = new T();
+            var protocol = new TProtocol();
             protocol.SetAgent(message.Agent);
             _protocolsList.Add(protocol);
-            protocol.SubscribeToChannel(_serviceToProtocolsChannel);
+            protocol.SubscribeToChannel(ServiceToProtocolChannel);
+        }
+    }
+
+    /// <summary>
+    /// Net service listener implemented with queue message iterator
+    /// </summary>
+    /// <typeparam name="TProtocol">Protocol</typeparam>
+    [SuppressMessage("ReSharper", "UnusedTypeParameter")]
+    public class ListenerNetService<TProtocol> : ListenerNetService<QueueMessagesIterator, TProtocol>
+        where TProtocol : Protocol, new()
+    {
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="listener">listener</param>
+        public ListenerNetService(Listener listener) : base(listener)
+        {
         }
     }
 }

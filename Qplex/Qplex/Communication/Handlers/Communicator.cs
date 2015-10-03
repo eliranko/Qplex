@@ -14,37 +14,21 @@ namespace Qplex.Communication.Handlers
     /// <summary>
     /// Communicator broadcasts and receives messages.
     /// </summary>
-    public class Communicator : Broadcaster, ICommunicator
+    /// <typeparam name="TIterator">Message iterator</typeparam>
+    public class Communicator<TIterator> : Broadcaster, ICommunicator where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Dispatcher
         /// </summary>
-        private readonly Dispatcher _dispatcher;
+        private readonly Dispatcher<TIterator> _dispatcher;
 
-        #region Constructors
         /// <summary>
         /// Ctor
         /// </summary>
         public Communicator()
         {
-            _dispatcher = new Dispatcher(typeof(QueueMessagesIterator));
+            _dispatcher = new Dispatcher<TIterator>();
         }
-
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="messagesIteratorType">Messages iterator type</param>
-        public Communicator(Type messagesIteratorType)
-        {
-            if (!messagesIteratorType.GetInterfaces().Contains(typeof(IMessagesIterator)))
-            {
-                Qplex.Instance.CloseApplication(
-                    $"Message iterator type received does not impelements IMessagesIterator interface: {messagesIteratorType.FullName}");
-            }
-
-            _dispatcher = new Dispatcher(messagesIteratorType);
-        }
-        #endregion
 
         /// <summary>
         /// Load message handlers using reflection, and start dispatcher threads
@@ -104,11 +88,11 @@ namespace Qplex.Communication.Handlers
         {
             //TODO: Log
             var methods = GetMethodsDecoratedByAttribute(GetTopDerivedClass(), typeof (MessageHandler));
-            ValidateMessageHandlers(methods);
 
             //Load handlers in dispatcher
             foreach (var methodInfo in methods)
             {
+                ValidateMessageHandlers(methodInfo);
                 _dispatcher.AddHandler(GetParameterType(methodInfo), 
                     GetDelegate(methodInfo), GetAttributeThreadName(methodInfo));
             }
@@ -182,25 +166,22 @@ namespace Qplex.Communication.Handlers
         }
 
         /// <summary>
-        /// Validate the message handlers
+        /// Validate a message handler
         /// </summary>
-        /// <param name="methodInfos">Methods to vaidate</param>
-        private void ValidateMessageHandlers(IEnumerable<MethodInfo> methodInfos)
+        /// <param name="methodInfo">Method to vaidate</param>
+        private void ValidateMessageHandlers(MethodInfo methodInfo)
         {
-            foreach (var methodInfo in methodInfos)
+            var parameters = methodInfo.GetParameters();
+
+            if (parameters.Count() > 1 || !parameters.Any())
             {
-                var parameters = methodInfo.GetParameters();
+                Qplex.Instance.CloseApplication($"MessageHandler {methodInfo.Name} should have 1 parameter!");
+            }
 
-                if (parameters.Count() > 1 || !parameters.Any())
-                {
-                    Qplex.Instance.CloseApplication($"MessageHandler {methodInfo.Name} should have 1 parameter!");
-                }
-
-                if (parameters.First().ParameterType != typeof (Message)  &&
-                    !(parameters.First().ParameterType.IsSubclassOf(typeof(Message))))
-                {
-                    Qplex.Instance.CloseApplication($"MessageHandler {methodInfo.Name} parameter should inherit Message!");
-                }
+            if (parameters.First().ParameterType != typeof (Message)  &&
+                !(parameters.First().ParameterType.IsSubclassOf(typeof(Message))))
+            {
+                Qplex.Instance.CloseApplication($"MessageHandler {methodInfo.Name} parameter should inherit Message!");
             }
         }
 

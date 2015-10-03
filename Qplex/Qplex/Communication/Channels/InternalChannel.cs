@@ -12,21 +12,21 @@ namespace Qplex.Communication.Channels
     public class InternalChannel
     {
         /// <summary>
+        /// Channel's name
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
         /// Subscribers
         /// </summary>
         private readonly IList<Broadcaster> _subscribersList;
-
-        /// <summary>
-        /// Channel's name
-        /// </summary>
-        private readonly string _name;
 
         /// <summary>
         /// Ctor
         /// </summary>
         public InternalChannel(string name)
         {
-            _name = name;
+            Name = name;
             _subscribersList = new List<Broadcaster>();
         }
 
@@ -56,12 +56,11 @@ namespace Qplex.Communication.Channels
         /// <param name="callerGuid">Caller guid</param>
         public void Broadcast(Message message, Guid callerGuid)
         {
-            foreach (var subscriber in _subscribersList.Where(subscriber => 
+            foreach (var subscriber in _subscribersList.Where(subscriber =>
+                subscriber.BroadcasterGuid != callerGuid &&
                 subscriber.GetType().GetInterfaces().Contains(typeof(ICommunicator))))
             {
-                //TODO: Log
-                if (subscriber.BroadcasterGuid == callerGuid) continue;;
-                ((Communicator)subscriber).NewMessage(message);
+                ((ICommunicator)subscriber).NewMessage(message);
             }
         }
     }

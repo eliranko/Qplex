@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
+using Qplex.FramingAlgorithms;
 using Qplex.MessageFactories;
 using Qplex.Messages.Networking;
 
@@ -9,12 +11,12 @@ namespace Qplex.Networking.Tcp
     /// <summary>
     /// Tcp listener
     /// </summary>
-    public class TcpListener<T> : Listener<TcpConnection, T> where T : IMessageFactory, new()
+    public class TcpListener<T, TU> : Listener where T : IMessageFactory, new() where TU : IFramingAlgorithm, new()
     {
         /// <summary>
         /// Tcp listener
         /// </summary>
-        private readonly System.Net.Sockets.TcpListener _tcpListener;
+        private readonly TcpListener _tcpListener;
 
         /// <summary>
         /// Indicates to stop listening
@@ -39,7 +41,7 @@ namespace Qplex.Networking.Tcp
         /// <param name="headerSize">Header size</param>
         public TcpListener(IPAddress ip, int port, int headerSize = 4)
         {
-            _tcpListener = new System.Net.Sockets.TcpListener(ip, port);
+            _tcpListener = new TcpListener(ip, port);
             _stopListening = false;
             _tcpClientConnectedEvent = new ManualResetEvent(false);
             _headerSize = headerSize;
@@ -83,8 +85,9 @@ namespace Qplex.Networking.Tcp
         private void AcceptTcpClient(IAsyncResult asyncResult)
         {
 // ReSharper disable once PossibleNullReferenceException
-            var tcpClient = (asyncResult.AsyncState as System.Net.Sockets.TcpListener).EndAcceptTcpClient(asyncResult);
-            Broadcast(new NewConnectionMessage(new Agent(new Parser(new TcpConnection(tcpClient,_headerSize), new T()))));
+            var tcpClient = (asyncResult.AsyncState as TcpListener).EndAcceptTcpClient(asyncResult);
+            Broadcast(new NewConnectionMessage(new Agent(new Parser(
+                new TcpConnection(tcpClient,_headerSize), new T(), new TU()))));
             _tcpClientConnectedEvent.Set();
         }
     }

@@ -1,9 +1,9 @@
 ﻿namespace Qplex.Messages.Networking
 {
     /// <summary>
-    /// Deserialized message
+    /// Unframed buffer message
     /// </summary>
-    public class DeserializedMessage : Message
+    public class UnframedBufferMessage : Message
     {
         /// <summary>
         /// Message
@@ -14,7 +14,7 @@
         /// Ctor
         /// </summary>
         /// <param name="message">Message</param>
-        public DeserializedMessage(Message message)
+        public UnframedBufferMessage(Message message)
         {
             Message = message;
         }
