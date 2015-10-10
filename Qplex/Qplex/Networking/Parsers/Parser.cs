@@ -1,4 +1,5 @@
-﻿using Qplex.Attributes;
+﻿using NLog;
+using Qplex.Attributes;
 using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.FramingAlgorithms;
@@ -55,6 +56,7 @@ namespace Qplex.Networking.Parsers
         /// <returns>Operation status</returns>
         public override bool Start()
         {
+            Log(LogLevel.Debug, "Starting...");
             return _connection.Start() && base.Start();
         }
 
@@ -63,6 +65,7 @@ namespace Qplex.Networking.Parsers
         /// </summary>
         public void Connect()
         {
+            Log(LogLevel.Debug, "Connecting...");
             _connection.Connect();
         }
 
@@ -71,6 +74,7 @@ namespace Qplex.Networking.Parsers
         /// </summary>
         public void Close()
         {
+            Log(LogLevel.Debug, "Closing...");
             _connection.Close();
         }
 
@@ -90,7 +94,7 @@ namespace Qplex.Networking.Parsers
         [MessageHandler]
         public void HandleNewBufferReceivedMessage(BufferReceivedMessage message)
         {
-            //TODO: Log
+            Log(LogLevel.Debug, $"Handling new buffer of size:{message.Buffer.Length}");
             Broadcast(new UnframedBufferMessage(
                 _messageFactory.Deserialize(_framingAlgorithm.UnframeBuffer(message.Buffer))));
         }

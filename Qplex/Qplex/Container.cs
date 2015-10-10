@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using NLog;
 using Qplex.Layers;
 
 namespace Qplex
@@ -8,6 +9,11 @@ namespace Qplex
     /// </summary>
     public abstract class Container
     {
+        /// <summary>
+        /// Logger
+        /// </summary>
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// Layers list
         /// </summary>
@@ -26,8 +32,11 @@ namespace Qplex
         /// </summary>
         public void Start()
         {
+            Logger.Log(LogLevel.Debug, "Initiating container...");
             InitContainer();
+            Logger.Log(LogLevel.Debug, "Initiating layers...");
             InitLayers();
+            Logger.Log(LogLevel.Debug, "Starting layers...");
             StartLayers();
         }
 
@@ -37,6 +46,7 @@ namespace Qplex
         /// <param name="layer">Layer</param>
         protected void AddLayer(ILayer layer)
         {
+            Logger.Log(LogLevel.Debug, $"Added layer {layer.GetType().Name}");
             _layersList.Add(layer);
         }
 

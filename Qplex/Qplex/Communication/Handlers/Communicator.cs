@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using NLog;
 using Qplex.Attributes;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
@@ -26,7 +27,7 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         public Communicator()
         {
-            _dispatcher = new Dispatcher<TIterator>();
+            _dispatcher = new Dispatcher<TIterator>($"{GetType().Name}Dispatcher");
             LoadMessageHandlers();
         }
 
@@ -36,7 +37,7 @@ namespace Qplex.Communication.Handlers
         /// <returns></returns>
         public virtual bool Start()
         {
-            //TODO: Log
+            Log(LogLevel.Debug, "Starting...");
             return _dispatcher.Start();
         }
 
@@ -45,6 +46,7 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         public virtual void Stop()
         {
+            Log(LogLevel.Debug, "Stopping...");
             _dispatcher.Stop();
         }
 
@@ -54,7 +56,6 @@ namespace Qplex.Communication.Handlers
         /// <param name="message">New received message</param>
         public void NewMessage(Message message)
         {
-            //TODO: Log
             _dispatcher.Dispatch(message);
         }
 
@@ -64,6 +65,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="message">Message</param>
         public void Notify(Message message)
         {
+            Log(LogLevel.Debug, $"Notifing message:{message.GetType().Name}");
             Task.Factory.StartNew(() => NewMessage(message));
         }
 
@@ -74,6 +76,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="milliseconds">Delay time</param>
         public void DelayedNotify(Message message, int milliseconds)
         {
+            Log(LogLevel.Debug, $"Delayed Notify of {milliseconds} of message:{message.GetType().Name}");
             Task.Factory.StartNew(() =>
             {
                 Thread.Sleep(milliseconds);
@@ -88,8 +91,6 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         private void LoadMessageHandlers()
         {
-            var type = GetType();
-            //TODO: Log
             var methods = GetMethodsDecoratedByAttribute(typeof (MessageHandler));
 
             //Load handlers in dispatcher

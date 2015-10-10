@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using NLog;
 using Qplex.Communication.Handlers;
 
 namespace Qplex.Networking.Listeners
@@ -27,6 +28,7 @@ namespace Qplex.Networking.Listeners
         /// <returns>Operation status</returns>
         public bool Start()
         {
+            Log(LogLevel.Debug, "Starting...");
             ListeningThread.Start();
 
             return true;

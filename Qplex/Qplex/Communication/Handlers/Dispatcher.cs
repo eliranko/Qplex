@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
 
@@ -13,6 +14,11 @@ namespace Qplex.Communication.Handlers
     public class Dispatcher<TIterator> where TIterator : IMessagesIterator, new()
     {
         /// <summary>
+        /// Logger
+        /// </summary>
+        private readonly Logger _logger;
+
+        /// <summary>
         /// Threads list
         /// </summary>
         private readonly IList<DispatcherThread> _threadsList;
@@ -20,8 +26,10 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Ctor
         /// </summary>
-        public Dispatcher()
+        /// <param name="name">Dispatcher's name</param>
+        public Dispatcher(string name)
         {
+            _logger = LogManager.GetLogger(name);
             _threadsList = new List<DispatcherThread>();
         }
 
@@ -31,7 +39,7 @@ namespace Qplex.Communication.Handlers
         /// <returns>Initiation status</returns>
         public bool Start()
         {
-            //TODO: Log
+            _logger.Log(LogLevel.Debug, "Starting...");
             var status = true;
             foreach (var dispatcherThread in _threadsList)
             {
@@ -46,6 +54,7 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         public void Stop()
         {
+            _logger.Log(LogLevel.Debug, "Starting...");
             foreach (var dispatcherThread in _threadsList)
             {
                 dispatcherThread.Stop();
@@ -60,17 +69,9 @@ namespace Qplex.Communication.Handlers
         /// <param name="threadName">Handling thread name</param>
         public void AddHandler(Type messageType, Action<Message> messageHandler, string threadName = "")
         {
-            //TODO: Log
-            var dispatcherThread = GetThread(threadName);
+            _logger.Log(LogLevel.Debug, $"Adding handler of message:{messageType.Name}");
+            var dispatcherThread = GetThread(threadName) ?? CreateThread(threadName);
 
-            //If the thread does not exist, create it
-            if (dispatcherThread == null)
-            {
-                //TODO: Log
-                dispatcherThread = CreateThread(threadName);
-            }
-
-// ReSharper disable once PossibleNullReferenceException
             dispatcherThread.AddHandler(messageType, messageHandler);
         }
 
@@ -80,8 +81,8 @@ namespace Qplex.Communication.Handlers
         /// <param name="message">Message to handle</param>
         public void Dispatch(Message message)
         {
-            //TODO: Log
             var dispatcherThread = GetThread(message.GetType());
+            _logger.Log(LogLevel.Debug, $"Dispatcher message:{message.GetType().Name} to thread:{dispatcherThread?.Name}");
 
             //Handle message if there's an handler for it
             dispatcherThread?.Dispatch(message);
@@ -115,6 +116,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="name">New thread's name</param>
         private DispatcherThread CreateThread(string name)
         {
+            _logger.Log(LogLevel.Debug, $"Creating thread {name}");
             var thread = new DispatcherThread(name, new TIterator());
             _threadsList.Add(thread);
 

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using NLog;
 using Qplex.Communication.Handlers;
 using Qplex.Messages.Networking;
 
@@ -68,11 +69,11 @@ namespace Qplex.Networking.Connection
         {
             if (_tcpClient.Connected)
             {
-                //TODO: Log
+                Log(LogLevel.Warn, "Tried to connect, when already connected");
             }
             else
             {
-                //TODO: Log
+                Log(LogLevel.Info, "Begin async connection...");
                 var asyncResult = _tcpClient.BeginConnect(_ip, _port, null, null);
                 //TODO: Receive timeout from configuration
                 var successConnection = asyncResult.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(10000));
@@ -81,6 +82,7 @@ namespace Qplex.Networking.Connection
                     throw new Exception("Tcp client failed to connect");
                 }
                 _tcpClient.EndConnect(asyncResult);
+                Log(LogLevel.Debug, $"Connected successfully to {_ip}:{_port}");
             }
         }
 
@@ -89,6 +91,7 @@ namespace Qplex.Networking.Connection
         /// </summary>
         public void Close()
         {
+            Log(LogLevel.Debug, "Closing connection...");
             _tcpClient.Close();
         }
 
@@ -98,13 +101,13 @@ namespace Qplex.Networking.Connection
         /// <returns>Operation status</returns>
         public bool Start()
         {
+            Log(LogLevel.Debug, "Starting...");
             if (!_tcpClient.Connected)
             {
                 Connect();
             }
 
             ReceiveMessage();
-
             return true;
         }
 
@@ -116,11 +119,12 @@ namespace Qplex.Networking.Connection
         {
             if (_tcpClient.Connected)
             {
+                Log(LogLevel.Debug, $"Begin async write of size {buffer.Length} to {_ip}:{_port}");
                 _tcpClient.GetStream().BeginWrite(buffer, 0, buffer.Length, SendComplete, null);
             }
             else
             {
-                //TODO: Log
+                Log(LogLevel.Error, "Tried to send buffer when socket is not connected!");
             }
         }
 
@@ -131,7 +135,7 @@ namespace Qplex.Networking.Connection
         /// <param name="asyncResult">Async result</param>
         private void SendComplete(IAsyncResult asyncResult)
         {
-            //TODO: Log
+            Log(LogLevel.Debug, "Send complete");
             _tcpClient.GetStream().EndWrite(asyncResult);
             //TODO: Maybe broadcast message?
         }
@@ -145,12 +149,15 @@ namespace Qplex.Networking.Connection
             //If array contains only zeros, receive another header
             if (_headerArray.All(b => b == 0))
             {
+                Log(LogLevel.Warn, "Received empty header");
                 ReceiveMessage();
                 return;
             }
 
-            _bufferArray = new byte[ConvertLittleEndian(_headerArray) + HeaderSize];
-            _tcpClient.GetStream().EndRead(asyncResult);
+            var readBytes = _tcpClient.GetStream().EndRead(asyncResult);
+            var messageSize = ConvertLittleEndian(_headerArray);
+            Log(LogLevel.Debug, $"Read {readBytes} bytes, and Received header of size {messageSize}");
+            _bufferArray = new byte[messageSize + HeaderSize];
 
             //Receive the message
             _tcpClient.GetStream().BeginRead(_bufferArray, HeaderSize, _bufferArray.Length - HeaderSize, ReceivedMessage, null);
@@ -162,8 +169,8 @@ namespace Qplex.Networking.Connection
         /// <param name="asyncResult">Async result</param>
         private void ReceivedMessage(IAsyncResult asyncResult)
         {
-            //TODO: Log
-            _tcpClient.GetStream().EndRead(asyncResult);
+            var bytesRead = _tcpClient.GetStream().EndRead(asyncResult);
+            Log(LogLevel.Debug, $"Receive message complete. Read {bytesRead} bytes.");
             _headerArray.CopyTo(_bufferArray, 0);
             Broadcast(new BufferReceivedMessage(_bufferArray));
 
@@ -177,7 +184,7 @@ namespace Qplex.Networking.Connection
         /// </summary>
         private void ReceiveMessage()
         {
-            //TODO: Log
+            Log(LogLevel.Debug, "Waiting for header...");
             _headerArray = new byte[HeaderSize];
             _tcpClient.GetStream().BeginRead(_headerArray, 0, HeaderSize, ReceivedHeader, null);
         }

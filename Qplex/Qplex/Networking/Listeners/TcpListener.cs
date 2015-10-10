@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using NLog;
 using Qplex.FramingAlgorithms;
 using Qplex.MessageFactories;
 using Qplex.Messages.Networking;
@@ -48,6 +49,7 @@ namespace Qplex.Networking.Listeners
         /// </summary>
         public override void Stop()
         {
+            Log(LogLevel.Debug, "Stopping...");
             _stopListening = true;
             //Signal the listener thread to continue without a client connection, inorder to exit.
             _tcpClientConnectedEvent.Set();
@@ -64,12 +66,14 @@ namespace Qplex.Networking.Listeners
 
             while (!_stopListening)
             {
-                //TODO: Log
                 //Reset previous connected client signal
                 _tcpClientConnectedEvent.Reset();
                 _tcpListener.BeginAcceptTcpClient(AcceptTcpClient, _tcpListener);
 
-                //Wait for a connection
+                Log(LogLevel.Debug, "Waiting for connection on " +
+                                    $"{IPAddress.Parse(((IPEndPoint)_tcpListener.LocalEndpoint).Address.ToString())}" +
+                                    ":" +
+                                    $"{((IPEndPoint)_tcpListener.LocalEndpoint).Port}");
                 _tcpClientConnectedEvent.WaitOne();
             }
         }
@@ -80,7 +84,11 @@ namespace Qplex.Networking.Listeners
         /// <param name="asyncResult">Async result</param>
         private void AcceptTcpClient(IAsyncResult asyncResult)
         {
-// ReSharper disable once PossibleNullReferenceException
+            Log(LogLevel.Debug, "Accepted connection on " +
+                                    $"{IPAddress.Parse(((IPEndPoint)_tcpListener.LocalEndpoint).Address.ToString())}" +
+                                    ":" +
+                                    $"{((IPEndPoint)_tcpListener.LocalEndpoint).Port}");
+            // ReSharper disable once PossibleNullReferenceException
             var tcpClient = (asyncResult.AsyncState as TcpListener).EndAcceptTcpClient(asyncResult);
             Broadcast(new NewConnectionMessage(new Agent(new Parser(
                 new TcpConnection(tcpClient), new T(), new TU()))));

@@ -1,4 +1,5 @@
-﻿using Qplex.Attributes;
+﻿using NLog;
+using Qplex.Attributes;
 using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
@@ -38,6 +39,7 @@ namespace Qplex.Networking.Agents
         /// <returns>Operation status</returns>
         public override bool Start()
         {
+            Log(LogLevel.Debug, "Starting...");
             return _parser.Start() && base.Start();
         }
 
@@ -46,6 +48,7 @@ namespace Qplex.Networking.Agents
         /// </summary>
         public void Connect()
         {
+            Log(LogLevel.Debug, "Connecting...");
             _parser.Connect();
         }
 
@@ -54,6 +57,7 @@ namespace Qplex.Networking.Agents
         /// </summary>
         public void Close()
         {
+            Log(LogLevel.Debug, "Closing...");
             _parser.Close();
         }
 
@@ -73,7 +77,7 @@ namespace Qplex.Networking.Agents
         [MessageHandler]
         public void HandleUnframedBufferMessage(UnframedBufferMessage message)
         {
-            //TODO: Log
+            Log(LogLevel.Debug, $"Handling new unframed buffer:{message.Message.GetType().Name}");
             Broadcast(message.Message);
         }
     }

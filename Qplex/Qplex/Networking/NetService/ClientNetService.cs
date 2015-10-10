@@ -1,4 +1,5 @@
-﻿using Qplex.Messages;
+﻿using NLog;
+using Qplex.Messages;
 using Qplex.Messages.Handlers;
 using Qplex.Networking.Protocols;
 
@@ -31,6 +32,7 @@ namespace Qplex.Networking.NetService
         /// <returns>Operation status</returns>
         public override bool Start()
         {
+            Log(LogLevel.Debug, "Starting...");
             _protocol.Start();
             return base.Start();
         }
@@ -40,6 +42,7 @@ namespace Qplex.Networking.NetService
         /// </summary>
         public override void Stop()
         {
+            Log(LogLevel.Debug, "Stopping...");
             base.Stop();
             _protocol.Close();
         }
@@ -50,6 +53,7 @@ namespace Qplex.Networking.NetService
         /// <param name="message">Message</param>
         public override void Send(Message message)
         {
+            Log(LogLevel.Debug, $"Sending message:{message.GetType().Name}");
             _protocol.Send(message);
         }
     }

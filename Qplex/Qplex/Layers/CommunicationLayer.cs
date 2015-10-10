@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using Qplex.Communication.Channels;
 using Qplex.Messages.Handlers;
 using Qplex.Networking.NetService;
@@ -41,6 +42,7 @@ namespace Qplex.Layers
         /// <param name="netService">Network service</param>
         protected void AddService(INetService netService)
         {
+            Log(LogLevel.Debug, $"Added service {netService.GetType().Name}");
             netService.SubscribeToChannel(_layerToServicesChannel);
             NetServicesList.Add(netService);
         }
@@ -51,6 +53,7 @@ namespace Qplex.Layers
         /// <returns>Operation status</returns>
         public override bool Start()
         {
+            Log(LogLevel.Debug, "Starting...");
             return NetServicesList.Aggregate(true, (current, netService) => current & netService.Start()) && base.Start();
         }
 
@@ -59,6 +62,7 @@ namespace Qplex.Layers
         /// </summary>
         public override void Stop()
         {
+            Log(LogLevel.Debug, "Stopping...");
             base.Stop();
             foreach (var netService in NetServicesList)
             {

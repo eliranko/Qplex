@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
 
@@ -11,6 +12,11 @@ namespace Qplex.Communication.Channels
     /// </summary>
     public class InternalChannel
     {
+        /// <summary>
+        /// Logger
+        /// </summary>
+        private readonly Logger _logger;
+
         /// <summary>
         /// Channel's name
         /// </summary>
@@ -27,6 +33,7 @@ namespace Qplex.Communication.Channels
         public InternalChannel(string name)
         {
             Name = name;
+            _logger = LogManager.GetLogger(name);
             _subscribersList = new List<Broadcaster>();
         }
 
@@ -36,7 +43,7 @@ namespace Qplex.Communication.Channels
         /// <param name="broadcaster">Subscriber</param>
         public void Subscribe(Broadcaster broadcaster)
         {
-            //TODO: Log
+            _logger.Log(LogLevel.Debug, $"New subscriber {broadcaster.GetType().Name}");
             _subscribersList.Add(broadcaster);
         }
 
@@ -46,6 +53,7 @@ namespace Qplex.Communication.Channels
         /// <param name="broadcaster">Subscriber</param>
         public void Unsubscribe(Broadcaster broadcaster)
         {
+            _logger.Log(LogLevel.Debug, $"Unsubscriber {broadcaster.GetType().Name}");
             _subscribersList.Remove(broadcaster);
         }
 
@@ -60,6 +68,7 @@ namespace Qplex.Communication.Channels
                 subscriber.BroadcasterGuid != callerGuid &&
                 subscriber.GetType().GetInterfaces().Contains(typeof(ICommunicator))))
             {
+                _logger.Log(LogLevel.Debug, $"Broadcasted {message.GetType().Name} to {subscriber.GetType().Name}");
                 ((ICommunicator)subscriber).NewMessage(message);
             }
         }

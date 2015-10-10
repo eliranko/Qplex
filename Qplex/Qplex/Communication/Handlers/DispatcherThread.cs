@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using NLog;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
 // ReSharper disable InconsistentlySynchronizedField
@@ -12,6 +13,11 @@ namespace Qplex.Communication.Handlers
     /// </summary>
     public class DispatcherThread
     {
+        /// <summary>
+        /// Logger
+        /// </summary>
+        private readonly Logger _logger;
+
         /// <summary>
         /// Thread
         /// </summary>
@@ -44,6 +50,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="messagesIterator">Messages iterator</param>
         public DispatcherThread(string name, IMessagesIterator messagesIterator)
         {
+            _logger = LogManager.GetLogger(name);
             Name = name;
             _messagesIterator = messagesIterator;
             _thread = new Thread(HandleMessages);
@@ -57,7 +64,7 @@ namespace Qplex.Communication.Handlers
         /// <returns>Initiatoin status</returns>
         public bool Start()
         {
-            // TODO: Log
+            _logger.Log(LogLevel.Debug, "Starting...");
             _thread.Start();
             return true;
         }
@@ -67,6 +74,7 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         public void Stop()
         {
+            _logger.Log(LogLevel.Debug, "Stopping...");
             _stop = true;
             _thread.Join();
         }
@@ -87,7 +95,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="messageHandler">Action handler for the message</param>
         public void AddHandler(Type messageType, Action<Message> messageHandler)
         {
-            //TODO: Log
+            _logger.Log(LogLevel.Debug, $"Adding handler of message:{messageType.Name}");
             _messageHandlers.Add(messageType, messageHandler);
         }
 
@@ -112,13 +120,14 @@ namespace Qplex.Communication.Handlers
                 {
                     while (!_messagesIterator.HasNext())
                     {
-                        //Sleep until there is a message to handle
+                        _logger.Log(LogLevel.Debug, "No more messages to handle. Going to sleep...");
                         Monitor.Wait(_messagesIterator.Inventory);
                     }
                 }
 
                 var message = _messagesIterator.Next();
-                // Invoke handler
+                _logger.Log(LogLevel.Debug, $"Handling message:{message.GetType().Name}");
+                //TODO: Maybe invoke using Task
                 _messageHandlers[message.GetType()].Invoke(message);
             }
         }

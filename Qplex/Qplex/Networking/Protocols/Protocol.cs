@@ -1,4 +1,5 @@
-﻿using Qplex.Communication.Channels;
+﻿using NLog;
+using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
@@ -52,6 +53,7 @@ namespace Qplex.Networking.Protocols
         /// <param name="agent">Network agent</param>
         public void SetAgent(IAgent agent)
         {
+            Log(LogLevel.Debug, "Setting new agent");
             _agent?.UnsubscribeFromChannel(_protocolToAgentChannel);
             _agent = agent;
             _agent.SubscribeToChannel(_protocolToAgentChannel);
@@ -63,6 +65,7 @@ namespace Qplex.Networking.Protocols
         /// <returns>Operation status</returns>
         public override bool Start()
         {
+            Log(LogLevel.Debug, "Starting...");
             return _agent.Start() && base.Start();
         }
 
@@ -71,6 +74,7 @@ namespace Qplex.Networking.Protocols
         /// </summary>
         public void Connect()
         {
+            Log(LogLevel.Debug, "Connecting...");
             _agent.Connect();
         }
 
@@ -79,6 +83,7 @@ namespace Qplex.Networking.Protocols
         /// </summary>
         public void Close()
         {
+            Log(LogLevel.Debug, "Closing connection...");
             _agent.Close();
         }
 

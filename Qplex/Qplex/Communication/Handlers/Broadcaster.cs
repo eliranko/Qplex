@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NLog;
 using Qplex.Communication.Channels;
 using Qplex.Messages;
 
@@ -8,7 +9,7 @@ namespace Qplex.Communication.Handlers
     /// <summary>
     /// Broadcaster broadcasrs message, but cannot receive messages.
     /// </summary>
-    public class Broadcaster : IBroadcaster
+    public class Broadcaster : LogWrapper, IBroadcaster
     {
         /// <summary>
         /// Type guid
@@ -35,7 +36,6 @@ namespace Qplex.Communication.Handlers
         /// <param name="internalChannel">Channel</param>
         public void SubscribeToChannel(InternalChannel internalChannel)
         {
-            //TODO: Log
             _channelsList.Add(internalChannel);
             internalChannel.Subscribe(this);
         }
@@ -46,7 +46,6 @@ namespace Qplex.Communication.Handlers
         /// <param name="internalChannel">Channel</param>
         public void UnsubscribeFromChannel(InternalChannel internalChannel)
         {
-            //TODO: Log
             _channelsList.Remove(internalChannel); // TODO: Test if works
             internalChannel.Unsubscribe(this);
         }
@@ -57,9 +56,9 @@ namespace Qplex.Communication.Handlers
         /// <param name="message">Message to broadcast</param>
         public void Broadcast(Message message)
         {
-            //TODO: Log
             foreach (var channel in _channelsList)
             {
+                Log(LogLevel.Debug, $"Broadcast message:{message.GetType().Name} to channel:{channel.Name}");
                 channel.Broadcast(message, BroadcasterGuid);
             }
         }

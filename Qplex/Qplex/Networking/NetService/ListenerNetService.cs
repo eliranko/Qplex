@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using NLog;
 using Qplex.Attributes;
 using Qplex.Communication.Channels;
 using Qplex.Messages;
@@ -48,6 +49,7 @@ namespace Qplex.Networking.NetService
         /// <returns>Operation status</returns>
         public override bool Start()
         {
+            Log(LogLevel.Debug, "Starting...");
             return _listener.Start() && base.Start();
         }
 
@@ -56,6 +58,7 @@ namespace Qplex.Networking.NetService
         /// </summary>
         public override void Stop()
         {
+            Log(LogLevel.Debug, "Stopping...");
             base.Stop();
             _listener.Stop();
             foreach (var protocol in _protocolsList)
@@ -70,6 +73,7 @@ namespace Qplex.Networking.NetService
         /// <param name="message">Message</param>
         public override void Send(Message message)
         {
+            Log(LogLevel.Debug, $"Sending message:{message.GetType().Name}");
             foreach (var protocol in _protocolsList)
             {
                 protocol.Send(message);
@@ -83,6 +87,7 @@ namespace Qplex.Networking.NetService
         [MessageHandler]
         public void HandleNewConnectionMessage(NewConnectionMessage message)
         {
+            Log(LogLevel.Debug, "Handling new connection...");
             var protocol = new TProtocol();
             protocol.SetAgent(message.Agent);
             AddProtocol(protocol);

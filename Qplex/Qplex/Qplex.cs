@@ -1,4 +1,6 @@
 ﻿using System;
+using NLog;
+using NLog.Fluent;
 
 namespace Qplex
 {
@@ -8,11 +10,15 @@ namespace Qplex
     public class Qplex
     {
         /// <summary>
+        /// Logger
+        /// </summary>
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        /// <summary>
         /// Ctor
         /// </summary>
         private Qplex()
         {
-            
         }
 
         /// <summary>
@@ -26,7 +32,7 @@ namespace Qplex
         /// <param name="errorMessage">Error message</param>
         public void CloseApplication(string errorMessage)
         {
-            //TODO: Log
+            Logger.Log(LogLevel.Fatal, errorMessage);
             Environment.Exit(-1);
         }
     }
