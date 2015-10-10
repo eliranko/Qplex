@@ -20,7 +20,7 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Message handlers dictionary
         /// </summary>
-        private readonly IDictionary<Type, Delegate> _messageHandlers;
+        private readonly IDictionary<Type, Action<Message>> _messageHandlers;
 
         /// <summary>
         /// Messages queue
@@ -47,7 +47,7 @@ namespace Qplex.Communication.Handlers
             Name = name;
             _messagesIterator = messagesIterator;
             _thread = new Thread(HandleMessages);
-            _messageHandlers = new Dictionary<Type, Delegate>();
+            _messageHandlers = new Dictionary<Type, Action<Message>>();
             _stop = false;
         }
 
@@ -84,8 +84,8 @@ namespace Qplex.Communication.Handlers
         /// Add message handler to dictionary
         /// </summary>
         /// <param name="messageType">Message begin handled</param>
-        /// <param name="messageHandler">Handler for the message</param>
-        public void AddHandler(Type messageType, Delegate messageHandler)
+        /// <param name="messageHandler">Action handler for the message</param>
+        public void AddHandler(Type messageType, Action<Message> messageHandler)
         {
             //TODO: Log
             _messageHandlers.Add(messageType, messageHandler);
@@ -119,7 +119,7 @@ namespace Qplex.Communication.Handlers
 
                 var message = _messagesIterator.Next();
                 // Invoke handler
-                _messageHandlers[message.GetType()].DynamicInvoke(message);
+                _messageHandlers[message.GetType()].Invoke(message);
             }
         }
     }

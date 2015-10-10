@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Qplex.Communication.Channels;
 using Qplex.Messages.Handlers;
 using Qplex.Networking.NetService;
@@ -10,12 +11,12 @@ namespace Qplex.Layers
     /// and processes communication using Message object.
     /// </summary>
     /// <typeparam name="TIterator">Message iterator</typeparam>
-    public abstract class CommunicationLayer<TIterator>: Layer<TIterator> where TIterator : IMessagesIterator, new()
+    public abstract class CommunicationLayer<TIterator> : Layer<TIterator> where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Net services list
         /// </summary>
-        protected readonly IList<NetService<TIterator>> NetServicesList;
+        protected readonly IList<INetService> NetServicesList;
 
         /// <summary>
         /// Layer to services channel
@@ -31,7 +32,17 @@ namespace Qplex.Layers
                 $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToServicesChannel");
             SubscribeToChannel(_layerToServicesChannel);
 
-            NetServicesList = new List<NetService<TIterator>>();
+            NetServicesList = new List<INetService>();
+        }
+
+        /// <summary>
+        /// Add service
+        /// </summary>
+        /// <param name="netService">Network service</param>
+        protected void AddService(INetService netService)
+        {
+            netService.SubscribeToChannel(_layerToServicesChannel);
+            NetServicesList.Add(netService);
         }
 
         /// <summary>
@@ -40,13 +51,7 @@ namespace Qplex.Layers
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            var status = base.Start();
-            foreach (var netService in NetServicesList)
-            {
-                status &= netService.Start();
-            }
-
-            return status;
+            return NetServicesList.Aggregate(true, (current, netService) => current & netService.Start()) && base.Start();
         }
 
         /// <summary>
@@ -59,16 +64,6 @@ namespace Qplex.Layers
             {
                 netService.Stop();
             }
-        }
-
-        /// <summary>
-        /// Add service
-        /// </summary>
-        /// <param name="netService">Network service</param>
-        public void AddService(NetService<TIterator> netService)
-        {
-            netService.SubscribeToChannel(_layerToServicesChannel);
-            NetServicesList.Add(netService);
         }
     }
 

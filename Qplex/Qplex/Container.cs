@@ -11,14 +11,14 @@ namespace Qplex
         /// <summary>
         /// Layers list
         /// </summary>
-        private readonly IList<Layer> _layersList;
+        private readonly IList<ILayer> _layersList;
 
         /// <summary>
         /// Ctor
         /// </summary>
         protected Container()
         {
-            _layersList = new List<Layer>();
+            _layersList = new List<ILayer>();
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Qplex
         /// Add layer to container
         /// </summary>
         /// <param name="layer">Layer</param>
-        protected void AddLayer(Layer layer)
+        protected void AddLayer(ILayer layer)
         {
             _layersList.Add(layer);
         }

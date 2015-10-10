@@ -1,13 +1,19 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using Qplex.Communication.Handlers;
 using Qplex.Messages.Networking;
 
-namespace Qplex.Networking.Tcp
+namespace Qplex.Networking.Connection
 {
     public class TcpConnection : Broadcaster, IConnection
     {
+        /// <summary>
+        /// Header size
+        /// </summary>
+        public int HeaderSize { get; set; }
+
         /// <summary>
         /// Tcp client
         /// </summary>
@@ -26,26 +32,20 @@ namespace Qplex.Networking.Tcp
         /// <summary>
         /// Header array
         /// </summary>
-// ReSharper disable once FieldCanBeMadeReadOnly.Local
         private byte[] _headerArray;
 
         /// <summary>
         /// Message array
         /// </summary>
-        private byte[] _messageArray;
+        private byte[] _bufferArray;
 
         /// <summary>
         /// Constructor used by listener
         /// </summary>
         /// <param name="tcpClient">Tcp client</param>
-        /// <param name="headerSize">Header size</param>
-        public TcpConnection(TcpClient tcpClient, int headerSize)
+        public TcpConnection(TcpClient tcpClient)
         {
             _tcpClient = tcpClient;
-            _headerArray = new byte[headerSize];
-            
-            //Start receiving
-            _tcpClient.GetStream().BeginRead(_headerArray, 0, _headerArray.Length, ReceivedHeader, null);
         }
 
         /// <summary>
@@ -53,16 +53,11 @@ namespace Qplex.Networking.Tcp
         /// </summary>
         /// <param name="ip">Ip</param>
         /// <param name="port">Port</param>
-        /// <param name="headerSize">Header</param>
-        public TcpConnection(IPAddress ip, int port, int headerSize)
+        public TcpConnection(IPAddress ip, int port)
         {
             _ip = ip;
             _port = port;
             _tcpClient = new TcpClient();
-            _headerArray = new byte[headerSize];
-
-            //Start receiving
-            _tcpClient.GetStream().BeginRead(_headerArray, 0, _headerArray.Length, ReceivedHeader, null);
         }
 
         /// <summary>
@@ -71,13 +66,21 @@ namespace Qplex.Networking.Tcp
         /// <returns></returns>
         public void Connect()
         {
-            if (_tcpClient.Connected || _ip == null || _port == 0)
+            if (_tcpClient.Connected)
             {
                 //TODO: Log
             }
             else
             {
-                _tcpClient.Connect(_ip, _port);
+                //TODO: Log
+                var asyncResult = _tcpClient.BeginConnect(_ip, _port, null, null);
+                //TODO: Receive timeout from configuration
+                var successConnection = asyncResult.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(10000));
+                if (!successConnection)
+                {
+                    throw new Exception("Tcp client failed to connect");
+                }
+                _tcpClient.EndConnect(asyncResult);
             }
         }
 
@@ -90,14 +93,38 @@ namespace Qplex.Networking.Tcp
         }
 
         /// <summary>
+        /// Start receiving message, and connect if not connected
+        /// </summary>
+        /// <returns>Operation status</returns>
+        public bool Start()
+        {
+            if (!_tcpClient.Connected)
+            {
+                Connect();
+            }
+
+            ReceiveMessage();
+
+            return true;
+        }
+
+        /// <summary>
         /// Send buffer over socket
         /// </summary>
         /// <param name="buffer">Buffer</param>
         public void Send(byte[] buffer)
         {
-            _tcpClient.GetStream().BeginWrite(buffer, 0, buffer.Length, SendComplete, null);
+            if (_tcpClient.Connected)
+            {
+                _tcpClient.GetStream().BeginWrite(buffer, 0, buffer.Length, SendComplete, null);
+            }
+            else
+            {
+                //TODO: Log
+            }
         }
 
+        #region Async callback
         /// <summary>
         /// Async sending completed
         /// </summary>
@@ -106,6 +133,7 @@ namespace Qplex.Networking.Tcp
         {
             //TODO: Log
             _tcpClient.GetStream().EndWrite(asyncResult);
+            //TODO: Maybe broadcast message?
         }
 
         /// <summary>
@@ -114,11 +142,18 @@ namespace Qplex.Networking.Tcp
         /// <param name="asyncResult">Async result</param>
         private void ReceivedHeader(IAsyncResult asyncResult)
         {
-            _messageArray = new byte[ConvertLittleEndian(_headerArray)];
+            //If array contains only zeros, receive another header
+            if (_headerArray.All(b => b == 0))
+            {
+                ReceiveMessage();
+                return;
+            }
+
+            _bufferArray = new byte[ConvertLittleEndian(_headerArray) + HeaderSize];
             _tcpClient.GetStream().EndRead(asyncResult);
 
             //Receive the message
-            _tcpClient.GetStream().BeginRead(_messageArray, 0, _messageArray.Length, ReceivedMessage, null);
+            _tcpClient.GetStream().BeginRead(_bufferArray, HeaderSize, _bufferArray.Length - HeaderSize, ReceivedMessage, null);
         }
 
         /// <summary>
@@ -129,16 +164,28 @@ namespace Qplex.Networking.Tcp
         {
             //TODO: Log
             _tcpClient.GetStream().EndRead(asyncResult);
-            Broadcast(new BufferReceivedMessage(_messageArray));
+            _headerArray.CopyTo(_bufferArray, 0);
+            Broadcast(new BufferReceivedMessage(_bufferArray));
 
-            //Start receiving
-            _tcpClient.GetStream().BeginRead(_headerArray, 0, _headerArray.Length, ReceivedHeader, null);
+            ReceiveMessage();
+        }
+        #endregion
+
+        #region Helpers
+        /// <summary>
+        /// Receive message
+        /// </summary>
+        private void ReceiveMessage()
+        {
+            //TODO: Log
+            _headerArray = new byte[HeaderSize];
+            _tcpClient.GetStream().BeginRead(_headerArray, 0, HeaderSize, ReceivedHeader, null);
         }
 
         /// <summary>
-        /// Convert any size of byte array to ulong
+        /// Convert arbitray size of byte array to ulong
         /// </summary>
-        /// <param name="array"></param>
+        /// <param name="array">Byte array</param>
         /// <returns>ulong</returns>
         private uint ConvertLittleEndian(byte[] array)
         {
@@ -152,5 +199,6 @@ namespace Qplex.Networking.Tcp
 
             return result;
         }
+        #endregion
     }
 }

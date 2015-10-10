@@ -1,4 +1,4 @@
-﻿using Qplex.Networking;
+﻿using Qplex.Networking.Agents;
 
 namespace Qplex.Messages.Networking
 {
@@ -10,13 +10,13 @@ namespace Qplex.Messages.Networking
         /// <summary>
         /// Network agent
         /// </summary>
-        public Agent Agent { get; }
+        public IAgent Agent { get; }
 
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="agent">Agent</param>
-        public NewConnectionMessage(Agent agent)
+        public NewConnectionMessage(IAgent agent)
         {
             Agent = agent;
         }

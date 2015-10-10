@@ -6,14 +6,15 @@ using Qplex.MessageFactories;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
 using Qplex.Messages.Networking;
+using Qplex.Networking.Connection;
 
-namespace Qplex.Networking
+namespace Qplex.Networking.Parsers
 {
     /// <summary>
     /// Parser sends and receives Message objects.
     /// </summary>
     /// <typeparam name="TIterator">Messages iterator</typeparam>
-    public class Parser<TIterator> : Communicator<TIterator> where TIterator : IMessagesIterator, new()
+    public class Parser<TIterator> : Communicator<TIterator>, IParser where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Connectoin
@@ -39,12 +40,22 @@ namespace Qplex.Networking
         public Parser(IConnection connection, IMessageFactory messageFactory, IFramingAlgorithm framingAlgorithm)
         {
             _connection = connection;
+            _connection.HeaderSize = framingAlgorithm.HeaderSize;
             _messageFactory = messageFactory;
             _framingAlgorithm = framingAlgorithm;
             var channel = new InternalChannel(
                 $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToConnectionChannel");
             SubscribeToChannel(channel);
             _connection.SubscribeToChannel(channel);
+        }
+
+        /// <summary>
+        /// Start receiving messages
+        /// </summary>
+        /// <returns>Operation status</returns>
+        public override bool Start()
+        {
+            return _connection.Start() && base.Start();
         }
 
         /// <summary>

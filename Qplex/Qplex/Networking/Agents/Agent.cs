@@ -4,31 +4,41 @@ using Qplex.Communication.Handlers;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
 using Qplex.Messages.Networking;
+using Qplex.Networking.Parsers;
 
-namespace Qplex.Networking
+namespace Qplex.Networking.Agents
 {
     /// <summary>
     /// Network agent. Agent sends and receives messsages over network.
     /// </summary>
     /// <typeparam name="TIterator">Messages iterator</typeparam>
-    public class Agent<TIterator> : Communicator<TIterator> where TIterator : IMessagesIterator, new()
+    public class Agent<TIterator> : Communicator<TIterator>, IAgent where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Parser
         /// </summary>
-        private readonly Parser<TIterator> _parser;
+        private readonly IParser _parser;
 
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="parser">Parser</param>
-        public Agent(Parser<TIterator> parser)
+        public Agent(IParser parser)
         {
             _parser = parser;
             var channel = new InternalChannel(
                 $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToParserChannel");
             SubscribeToChannel(channel);
             _parser.SubscribeToChannel(channel);
+        }
+
+        /// <summary>
+        /// Start receiving messages
+        /// </summary>
+        /// <returns>Operation status</returns>
+        public override bool Start()
+        {
+            return _parser.Start() && base.Start();
         }
 
         /// <summary>
@@ -77,7 +87,7 @@ namespace Qplex.Networking
         /// Ctor
         /// </summary>
         /// <param name="parser">Parser</param>
-        public Agent(Parser<QueueMessagesIterator> parser) : base(parser)
+        public Agent(IParser parser) : base(parser)
         {
         }
     }

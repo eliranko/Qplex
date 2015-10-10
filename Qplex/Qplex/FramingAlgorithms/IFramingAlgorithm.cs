@@ -6,6 +6,11 @@
     public interface IFramingAlgorithm
     {
         /// <summary>
+        /// Header size
+        /// </summary>
+        int HeaderSize { get; }
+
+        /// <summary>
         /// Frame buffer
         /// </summary>
         /// <param name="frame">Frame</param>

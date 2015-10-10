@@ -5,6 +5,8 @@ using Qplex.Communication.Channels;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
 using Qplex.Messages.Networking;
+using Qplex.Networking.Listeners;
+using Qplex.Networking.Protocols;
 
 namespace Qplex.Networking.NetService
 {
@@ -14,7 +16,7 @@ namespace Qplex.Networking.NetService
     /// <typeparam name="TIterator">Message iterator</typeparam>
     /// <typeparam name="TProtocol">Protocol</typeparam>
     public class ListenerNetService<TIterator, TProtocol> : NetService<TIterator> 
-        where TIterator : IMessagesIterator, new() where TProtocol : Protocol, new()
+        where TIterator : IMessagesIterator, new() where TProtocol : IProtocol, new()
     {
         /// <summary>
         /// Protocols list
@@ -24,13 +26,13 @@ namespace Qplex.Networking.NetService
         /// <summary>
         /// Listener
         /// </summary>
-        private readonly Listener _listener;
+        private readonly IListener _listener;
 
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="listener">Listener</param>
-        public ListenerNetService(Listener listener)
+        public ListenerNetService(IListener listener)
         {
             _listener = listener;
             _protocolsList = new List<TProtocol>();
@@ -46,7 +48,7 @@ namespace Qplex.Networking.NetService
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            return base.Start() || _listener.Start();
+            return _listener.Start() && base.Start();
         }
 
         /// <summary>
@@ -83,9 +85,21 @@ namespace Qplex.Networking.NetService
         {
             var protocol = new TProtocol();
             protocol.SetAgent(message.Agent);
-            _protocolsList.Add(protocol);
-            protocol.SubscribeToChannel(ServiceToProtocolChannel);
+            AddProtocol(protocol);
         }
+
+        #region Helpers
+        /// <summary>
+        /// Add protocol to service
+        /// </summary>
+        /// <param name="protocol">Protocol</param>
+        private void AddProtocol(TProtocol protocol)
+        {
+            protocol.SubscribeToChannel(ServiceToProtocolChannel);
+            protocol.Start();
+            _protocolsList.Add(protocol);
+        }
+        #endregion
     }
 
     /// <summary>
@@ -94,13 +108,13 @@ namespace Qplex.Networking.NetService
     /// <typeparam name="TProtocol">Protocol</typeparam>
     [SuppressMessage("ReSharper", "UnusedTypeParameter")]
     public class ListenerNetService<TProtocol> : ListenerNetService<QueueMessagesIterator, TProtocol>
-        where TProtocol : Protocol, new()
+        where TProtocol : IProtocol, new()
     {
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="listener">listener</param>
-        public ListenerNetService(Listener listener) : base(listener)
+        public ListenerNetService(IListener listener) : base(listener)
         {
         }
     }

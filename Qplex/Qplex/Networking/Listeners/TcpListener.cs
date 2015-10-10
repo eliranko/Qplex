@@ -5,8 +5,11 @@ using System.Threading;
 using Qplex.FramingAlgorithms;
 using Qplex.MessageFactories;
 using Qplex.Messages.Networking;
+using Qplex.Networking.Agents;
+using Qplex.Networking.Connection;
+using Qplex.Networking.Parsers;
 
-namespace Qplex.Networking.Tcp
+namespace Qplex.Networking.Listeners
 {
     /// <summary>
     /// Tcp listener
@@ -29,22 +32,15 @@ namespace Qplex.Networking.Tcp
         private readonly ManualResetEvent _tcpClientConnectedEvent;
 
         /// <summary>
-        /// Header size
-        /// </summary>
-        private readonly int _headerSize;
-
-        /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="ip">Ip</param>
         /// <param name="port">Port</param>
-        /// <param name="headerSize">Header size</param>
-        public TcpListener(IPAddress ip, int port, int headerSize = 4)
+        public TcpListener(IPAddress ip, int port)
         {
             _tcpListener = new TcpListener(ip, port);
             _stopListening = false;
             _tcpClientConnectedEvent = new ManualResetEvent(false);
-            _headerSize = headerSize;
         }
 
         /// <summary>
@@ -87,7 +83,7 @@ namespace Qplex.Networking.Tcp
 // ReSharper disable once PossibleNullReferenceException
             var tcpClient = (asyncResult.AsyncState as TcpListener).EndAcceptTcpClient(asyncResult);
             Broadcast(new NewConnectionMessage(new Agent(new Parser(
-                new TcpConnection(tcpClient,_headerSize), new T(), new TU()))));
+                new TcpConnection(tcpClient), new T(), new TU()))));
             _tcpClientConnectedEvent.Set();
         }
     }

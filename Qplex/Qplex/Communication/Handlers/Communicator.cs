@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,16 +27,16 @@ namespace Qplex.Communication.Handlers
         public Communicator()
         {
             _dispatcher = new Dispatcher<TIterator>();
+            LoadMessageHandlers();
         }
 
         /// <summary>
-        /// Load message handlers using reflection, and start dispatcher threads
+        /// Start dispatcher threads
         /// </summary>
         /// <returns></returns>
         public virtual bool Start()
         {
             //TODO: Log
-            LoadMessageHandlers();
             return _dispatcher.Start();
         }
 
@@ -75,8 +74,11 @@ namespace Qplex.Communication.Handlers
         /// <param name="milliseconds">Delay time</param>
         public void DelayedNotify(Message message, int milliseconds)
         {
-            Thread.Sleep(milliseconds);
-            NewMessage(message);
+            Task.Factory.StartNew(() =>
+            {
+                Thread.Sleep(milliseconds);
+                NewMessage(message);
+            });
         }
 
         #region Reflection
@@ -86,49 +88,29 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         private void LoadMessageHandlers()
         {
+            var type = GetType();
             //TODO: Log
-            var methods = GetMethodsDecoratedByAttribute(GetTopDerivedClass(), typeof (MessageHandler));
+            var methods = GetMethodsDecoratedByAttribute(typeof (MessageHandler));
 
             //Load handlers in dispatcher
             foreach (var methodInfo in methods)
             {
                 ValidateMessageHandlers(methodInfo);
-                _dispatcher.AddHandler(GetParameterType(methodInfo), 
-                    GetDelegate(methodInfo), GetAttributeThreadName(methodInfo));
+                _dispatcher.AddHandler(
+                    GetParameterType(methodInfo), 
+                    GetAction(methodInfo), 
+                    GetAttributeThreadName(methodInfo));
             }
-        }
-
-        /// <summary>
-        /// Get the top derived class
-        /// </summary>
-        /// <returns>Top derived class</returns>
-        private Type GetTopDerivedClass()
-        {
-            Type topClass = null;
-
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                var derivedClass = from type in assembly.GetTypes()
-                    where type.GetInterfaces().Contains(typeof (ICommunicator)) && type.GUID == GetType().GUID
-                    select type;
-
-                topClass = derivedClass.FirstOrDefault();
-
-                if(topClass != null) break;
-            }
-
-            return topClass;
         }
 
         /// <summary>
         /// Get methods of the given type, decorated by the given attribute.
         /// </summary>
-        /// <param name="objectType">Object type</param>
         /// <param name="attributeType">Decorating attribute</param>
-        /// <returns></returns>
-        private IEnumerable<MethodInfo> GetMethodsDecoratedByAttribute(Type objectType, Type attributeType)
+        /// <returns>IEnumerable methods</returns>
+        private IEnumerable<MethodInfo> GetMethodsDecoratedByAttribute(Type attributeType)
         {
-            return objectType.GetMethods().Where(method => method.GetCustomAttributes(attributeType).Any());
+            return GetType().GetMethods().Where(method => method.GetCustomAttributes(attributeType).Any());
         }
 
         /// <summary>
@@ -136,12 +118,9 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         /// <param name="methodInfo">Method</param>
         /// <returns>Method delegate</returns>
-        private Delegate GetDelegate(MethodInfo methodInfo)
+        private Action<Message> GetAction(MethodInfo methodInfo)
         {
-            return methodInfo.CreateDelegate(Expression.GetDelegateType(
-                    (from parameter in methodInfo.GetParameters() select parameter.ParameterType)
-                    .Concat(new[] { methodInfo.ReturnType })
-                    .ToArray()), this);
+            return message => methodInfo.Invoke(this, new object[] {message} );
         }
 
         /// <summary>
@@ -182,6 +161,11 @@ namespace Qplex.Communication.Handlers
                 !(parameters.First().ParameterType.IsSubclassOf(typeof(Message))))
             {
                 Qplex.Instance.CloseApplication($"MessageHandler {methodInfo.Name} parameter should inherit Message!");
+            }
+
+            if (methodInfo.ReturnType != typeof (void))
+            {
+                Qplex.Instance.CloseApplication($"MessageHandler {methodInfo.Name} return type should be void!");
             }
         }
 

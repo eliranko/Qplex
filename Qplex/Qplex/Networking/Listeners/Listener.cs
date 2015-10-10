@@ -1,12 +1,12 @@
 ﻿using System.Threading;
 using Qplex.Communication.Handlers;
 
-namespace Qplex.Networking
+namespace Qplex.Networking.Listeners
 {
     /// <summary>
     /// Network listener
     /// </summary>
-    public abstract class Listener : Broadcaster
+    public abstract class Listener : Broadcaster, IListener
     {
         /// <summary>
         /// Listening thread

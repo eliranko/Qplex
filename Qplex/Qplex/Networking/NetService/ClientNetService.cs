@@ -1,5 +1,6 @@
 ﻿using Qplex.Messages;
 using Qplex.Messages.Handlers;
+using Qplex.Networking.Protocols;
 
 namespace Qplex.Networking.NetService
 {
@@ -12,15 +13,16 @@ namespace Qplex.Networking.NetService
         /// <summary>
         /// Network protocl
         /// </summary>
-        private readonly Protocol _protocol;
+        private readonly IProtocol _protocol;
 
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="protocol">Protocol</param>
-        protected ClientNetService(Protocol protocol)
+        public ClientNetService(IProtocol protocol)
         {
             _protocol = protocol;
+            _protocol.SubscribeToChannel(ServiceToProtocolChannel);
         }
 
         /// <summary>
@@ -29,10 +31,8 @@ namespace Qplex.Networking.NetService
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            var status = base.Start();
-            _protocol.Connect();
-
-            return status;
+            _protocol.Start();
+            return base.Start();
         }
 
         /// <summary>
@@ -51,6 +51,20 @@ namespace Qplex.Networking.NetService
         public override void Send(Message message)
         {
             _protocol.Send(message);
+        }
+    }
+
+    /// <summary>
+    /// Client net service implements using queueu messages iterator
+    /// </summary>
+    public class ClientNetService : ClientNetService<QueueMessagesIterator>
+    {
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="protocol">Protocol</param>
+        public ClientNetService(IProtocol protocol) : base(protocol)
+        {
         }
     }
 }
