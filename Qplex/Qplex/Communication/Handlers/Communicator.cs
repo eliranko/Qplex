@@ -37,7 +37,6 @@ namespace Qplex.Communication.Handlers
         /// <returns></returns>
         public virtual bool Start()
         {
-            Log(LogLevel.Debug, "Starting...");
             return _dispatcher.Start();
         }
 

@@ -53,7 +53,6 @@ namespace Qplex.Layers
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            Log(LogLevel.Debug, "Starting...");
             return NetServicesList.Aggregate(true, (current, netService) => current & netService.Start()) && base.Start();
         }
 

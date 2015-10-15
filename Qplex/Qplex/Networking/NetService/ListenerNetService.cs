@@ -49,7 +49,6 @@ namespace Qplex.Networking.NetService
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            Log(LogLevel.Debug, "Starting...");
             return _listener.Start() && base.Start();
         }
 

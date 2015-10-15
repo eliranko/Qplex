@@ -39,7 +39,6 @@ namespace Qplex.Communication.Handlers
         /// <returns>Initiation status</returns>
         public bool Start()
         {
-            _logger.Log(LogLevel.Debug, "Starting...");
             var status = true;
             foreach (var dispatcherThread in _threadsList)
             {

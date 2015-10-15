@@ -101,7 +101,6 @@ namespace Qplex.Networking.Connection
         /// <returns>Operation status</returns>
         public bool Start()
         {
-            Log(LogLevel.Debug, "Starting...");
             if (!_tcpClient.Connected)
             {
                 Connect();

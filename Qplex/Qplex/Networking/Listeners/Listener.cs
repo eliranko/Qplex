@@ -28,7 +28,6 @@ namespace Qplex.Networking.Listeners
         /// <returns>Operation status</returns>
         public bool Start()
         {
-            Log(LogLevel.Debug, "Starting...");
             ListeningThread.Start();
 
             return true;

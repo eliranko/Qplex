@@ -43,7 +43,7 @@ namespace Qplex.Communication.Channels
         /// <param name="broadcaster">Subscriber</param>
         public void Subscribe(Broadcaster broadcaster)
         {
-            _logger.Log(LogLevel.Debug, $"New subscriber {broadcaster.GetType().Name}");
+            _logger.Log(LogLevel.Debug, "New subscriber {0}", broadcaster.GetType().Name);
             _subscribersList.Add(broadcaster);
         }
 
@@ -53,7 +53,7 @@ namespace Qplex.Communication.Channels
         /// <param name="broadcaster">Subscriber</param>
         public void Unsubscribe(Broadcaster broadcaster)
         {
-            _logger.Log(LogLevel.Debug, $"Unsubscriber {broadcaster.GetType().Name}");
+            _logger.Log(LogLevel.Debug, "Unsubscriber {0}", broadcaster.GetType().Name);
             _subscribersList.Remove(broadcaster);
         }
 
@@ -68,7 +68,7 @@ namespace Qplex.Communication.Channels
                 subscriber.BroadcasterGuid != callerGuid &&
                 subscriber.GetType().GetInterfaces().Contains(typeof(ICommunicator))))
             {
-                _logger.Log(LogLevel.Debug, $"Broadcasted {message.GetType().Name} to {subscriber.GetType().Name}");
+                _logger.Log(LogLevel.Debug, "Broadcasted {0} to {1}", message.GetType().Name, subscriber.GetType().Name);
                 ((ICommunicator)subscriber).NewMessage(message);
             }
         }

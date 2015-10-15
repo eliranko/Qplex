@@ -56,7 +56,6 @@ namespace Qplex.Networking.Parsers
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            Log(LogLevel.Debug, "Starting...");
             return _connection.Start() && base.Start();
         }
 

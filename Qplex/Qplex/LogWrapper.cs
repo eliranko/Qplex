@@ -10,8 +10,8 @@ namespace Qplex
         /// <summary>
         /// NLog logger
         /// </summary>
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        
+        public Logger Logger { get; set; }
+
         /// <summary>
         /// Log
         /// </summary>

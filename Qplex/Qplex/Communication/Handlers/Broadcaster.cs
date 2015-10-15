@@ -26,6 +26,7 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         public Broadcaster()
         {
+            Logger = LogManager.GetLogger(GetType().Name);
             _channelsList = new List<InternalChannel>();
             BroadcasterGuid = GetType().GUID;
         }

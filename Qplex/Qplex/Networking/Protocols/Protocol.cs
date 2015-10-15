@@ -65,7 +65,6 @@ namespace Qplex.Networking.Protocols
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            Log(LogLevel.Debug, "Starting...");
             return _agent.Start() && base.Start();
         }
 

@@ -64,7 +64,6 @@ namespace Qplex.Communication.Handlers
         /// <returns>Initiatoin status</returns>
         public bool Start()
         {
-            _logger.Log(LogLevel.Debug, "Starting...");
             _thread.Start();
             return true;
         }
