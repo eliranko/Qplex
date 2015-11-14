@@ -2,6 +2,9 @@
 
 namespace Qplex.Attributes
 {
+    /// <summary>
+    /// Message handler attribute
+    /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     public class MessageHandler : Attribute
     {

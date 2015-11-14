@@ -41,9 +41,9 @@ namespace Qplex.Networking.NetService
         /// </summary>
         public override void Stop()
         {
-            Log(LogLevel.Debug, "Stopping...");
+            Log(LogLevel.Debug, "Stopping ClientNetService...");
+            _protocol.Stop();
             base.Stop();
-            _protocol.Close();
         }
 
         /// <summary>

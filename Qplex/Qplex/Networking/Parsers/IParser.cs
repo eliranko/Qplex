@@ -1,5 +1,7 @@
-﻿using Qplex.Communication.Handlers;
+﻿using Qplex.Attributes;
+using Qplex.Communication.Handlers;
 using Qplex.Messages;
+using Qplex.Messages.Networking.Connection;
 
 namespace Qplex.Networking.Parsers
 {
@@ -9,19 +11,14 @@ namespace Qplex.Networking.Parsers
     public interface IParser : ICommunicator
     {
         /// <summary>
-        /// Connect
-        /// </summary>
-        void Connect();
-
-        /// <summary>
-        /// Close conneciton
-        /// </summary>
-        void Close();
-
-        /// <summary>
         /// Send serialized message
         /// </summary>
-        /// <param name="message">Message</param>
         void Send(Message message);
+
+        /// <summary>
+        /// Handle received buffer from connection
+        /// </summary>
+        [MessageHandler]
+        void HandleConnectionBufferReceivedMessage(ConnectionBufferReceivedMessage message);
     }
 }

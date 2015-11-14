@@ -60,7 +60,7 @@ namespace Qplex.Networking.Protocols
         }
 
         /// <summary>
-        /// Start receiving messages
+        /// Starting agent
         /// </summary>
         /// <returns>Operation status</returns>
         public override bool Start()
@@ -69,21 +69,12 @@ namespace Qplex.Networking.Protocols
         }
 
         /// <summary>
-        /// Connect
+        /// Stopping agent
         /// </summary>
-        public void Connect()
+        public override void Stop()
         {
-            Log(LogLevel.Debug, "Connecting...");
-            _agent.Connect();
-        }
-
-        /// <summary>
-        /// Close conneciton
-        /// </summary>
-        public void Close()
-        {
-            Log(LogLevel.Debug, "Closing connection...");
-            _agent.Close();
+            _agent.Stop();
+            base.Stop();
         }
 
         /// <summary>

@@ -20,6 +20,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>..\..\bin\Qplex.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -64,7 +66,8 @@
     <Compile Include="Messages\Handlers\IMessagesIterator.cs" />
     <Compile Include="Messages\Handlers\QueueMessagesIterator.cs" />
     <Compile Include="Messages\Message.cs" />
-    <Compile Include="Messages\Networking\BufferReceivedMessage.cs" />
+    <Compile Include="Messages\Networking\Connection\ConnectionBufferReceivedMessage.cs" />
+    <Compile Include="Messages\Networking\Connection\ConnectionSendStatusMessage.cs" />
     <Compile Include="Messages\Networking\NewConnectionMessage.cs" />
     <Compile Include="Messages\Networking\UnframedBufferMessage.cs" />
     <Compile Include="Networking\Agents\Agent.cs" />

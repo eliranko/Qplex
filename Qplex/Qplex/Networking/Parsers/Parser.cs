@@ -7,6 +7,7 @@ using Qplex.MessageFactories;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
 using Qplex.Messages.Networking;
+using Qplex.Messages.Networking.Connection;
 using Qplex.Networking.Connection;
 
 namespace Qplex.Networking.Parsers
@@ -56,42 +57,31 @@ namespace Qplex.Networking.Parsers
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            return _connection.Start() && base.Start();
+            return _connection.ConnectAndReceive() == ConnectionConnectStatus.Success && base.Start();
         }
 
         /// <summary>
-        /// Connect
+        /// Stopping connection
         /// </summary>
-        public void Connect()
+        public override void Stop()
         {
-            Log(LogLevel.Debug, "Connecting...");
-            _connection.Connect();
-        }
-
-        /// <summary>
-        /// Close conneciton
-        /// </summary>
-        public void Close()
-        {
-            Log(LogLevel.Debug, "Closing...");
             _connection.Close();
+            base.Stop();
         }
 
         /// <summary>
         /// Send serialized message
         /// </summary>
-        /// <param name="message">Message</param>
         public void Send(Message message)
         {
             _connection.Send(_framingAlgorithm.FrameBuffer(_messageFactory.Serialize(message)));
         }
 
         /// <summary>
-        /// Handle received buffer
+        /// Handle received buffer from connection
         /// </summary>
-        /// <param name="message">NewBufferReceivedMessage</param>
         [MessageHandler]
-        public void HandleNewBufferReceivedMessage(BufferReceivedMessage message)
+        public void HandleConnectionBufferReceivedMessage(ConnectionBufferReceivedMessage message)
         {
             Log(LogLevel.Debug, $"Handling new buffer of size:{message.Buffer.Length}");
             Broadcast(new UnframedBufferMessage(

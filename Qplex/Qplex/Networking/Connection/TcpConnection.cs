@@ -1,13 +1,17 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using NLog;
 using Qplex.Communication.Handlers;
-using Qplex.Messages.Networking;
+using Qplex.Messages.Networking.Connection;
 
 namespace Qplex.Networking.Connection
 {
+    /// <summary>
+    /// Tcp connection
+    /// </summary>
     public class TcpConnection : Broadcaster, IConnection
     {
         /// <summary>
@@ -47,6 +51,8 @@ namespace Qplex.Networking.Connection
         public TcpConnection(TcpClient tcpClient)
         {
             _tcpClient = tcpClient;
+            _ip = ((IPEndPoint) tcpClient.Client.RemoteEndPoint).Address;
+            _port = ((IPEndPoint) tcpClient.Client.RemoteEndPoint).Port;
         }
 
         /// <summary>
@@ -62,52 +68,54 @@ namespace Qplex.Networking.Connection
         }
 
         /// <summary>
-        /// Connect
+        /// Connect and start receiving messages
         /// </summary>
-        /// <returns></returns>
-        public void Connect()
+        /// <returns>Operation status</returns>
+        public ConnectionConnectStatus ConnectAndReceive()
         {
+            Log(LogLevel.Debug, $"Tcp client trying to connect to {_ip}:{_port}");
             if (_tcpClient.Connected)
             {
-                Log(LogLevel.Warn, "Tried to connect, when already connected");
+                Log(LogLevel.Warn, "Tried to connect while tcp client is already connected");
+                return ConnectionConnectStatus.SocketAlreadyConnected;
             }
-            else
+
+            try
             {
-                Log(LogLevel.Info, "Begin async connection...");
-                var asyncResult = _tcpClient.BeginConnect(_ip, _port, null, null);
-                //TODO: Receive timeout from configuration
-                var successConnection = asyncResult.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(10000));
-                if (!successConnection)
-                {
-                    throw new Exception("Tcp client failed to connect");
-                }
-                _tcpClient.EndConnect(asyncResult);
+                _tcpClient.Connect(_ip, _port);
                 Log(LogLevel.Debug, $"Connected successfully to {_ip}:{_port}");
+                BeginReceiveMessage();
+                return ConnectionConnectStatus.Success;
+            }
+            catch (ArgumentNullException)
+            {
+                Log(LogLevel.Error, $"ArgumentNullException thrown when tried to connect to {_ip}:{_port}");
+                return ConnectionConnectStatus.NullAddress;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Log(LogLevel.Error, $"ArgumentOutOfRangeException thrown when tried to connect to {_ip}:{_port}");
+                return ConnectionConnectStatus.InvalidPort;
+            }
+            catch (SocketException)
+            {
+                Log(LogLevel.Error, $"SocketException thrown when tried to connect to {_ip}:{_port}");
+                return ConnectionConnectStatus.SocketError;
+            }
+            catch (ObjectDisposedException)
+            {
+                Log(LogLevel.Error, $"ObjectDisposedException thrown when tried to connect to {_ip}:{_port}");
+                return ConnectionConnectStatus.ClientDisposed;
             }
         }
 
         /// <summary>
-        /// Close connection
+        /// Closes connection
         /// </summary>
         public void Close()
         {
-            Log(LogLevel.Debug, "Closing connection...");
+            Log(LogLevel.Debug, $"Stopping tcp client on {_ip}:{_port}");
             _tcpClient.Close();
-        }
-
-        /// <summary>
-        /// Start receiving message, and connect if not connected
-        /// </summary>
-        /// <returns>Operation status</returns>
-        public bool Start()
-        {
-            if (!_tcpClient.Connected)
-            {
-                Connect();
-            }
-
-            ReceiveMessage();
-            return true;
         }
 
         /// <summary>
@@ -123,11 +131,11 @@ namespace Qplex.Networking.Connection
             }
             else
             {
-                Log(LogLevel.Error, "Tried to send buffer when socket is not connected!");
+                Log(LogLevel.Error, "Tried to send buffer when socket is not connected");
             }
         }
 
-        #region Async callback
+        #region Async Callbacks
         /// <summary>
         /// Async sending completed
         /// </summary>
@@ -135,8 +143,21 @@ namespace Qplex.Networking.Connection
         private void SendComplete(IAsyncResult asyncResult)
         {
             Log(LogLevel.Debug, "Send complete");
-            _tcpClient.GetStream().EndWrite(asyncResult);
-            //TODO: Maybe broadcast message?
+            try
+            {
+                _tcpClient.GetStream().EndWrite(asyncResult);
+                Broadcast(new ConnectionSendStatusMessage(ConnectionSocketStatus.Success));
+            }
+            catch (IOException)
+            {
+                Log(LogLevel.Error, $"IOException resulted when ended write on {_ip}:{_port}");
+                Broadcast(new ConnectionSendStatusMessage(ConnectionSocketStatus.SocketClosed));
+            }
+            catch (ObjectDisposedException)
+            {
+                Log(LogLevel.Error, $"ObjectDisposedException resulted when ended write on {_ip}:{_port}");
+                Broadcast(new ConnectionSendStatusMessage(ConnectionSocketStatus.ClientDisposed));
+            }
         }
 
         /// <summary>
@@ -148,14 +169,17 @@ namespace Qplex.Networking.Connection
             //If array contains only zeros, receive another header
             if (_headerArray.All(b => b == 0))
             {
-                Log(LogLevel.Warn, "Received empty header");
-                ReceiveMessage();
+                Log(LogLevel.Warn, "Received an empty header");
+                BeginReceiveMessage();
                 return;
             }
 
-            var readBytes = _tcpClient.GetStream().EndRead(asyncResult);
+            var bytesRead = EndAsyncReadResult(asyncResult);
+            if(bytesRead < 0)
+                return;
+
             var messageSize = ConvertLittleEndian(_headerArray);
-            Log(LogLevel.Debug, $"Read {readBytes} bytes, and Received header of size {messageSize}");
+            Log(LogLevel.Trace, $"Read {bytesRead} bytes, and Received header of size {messageSize}");
             _bufferArray = new byte[messageSize + HeaderSize];
 
             //Receive the message
@@ -168,24 +192,50 @@ namespace Qplex.Networking.Connection
         /// <param name="asyncResult">Async result</param>
         private void ReceivedMessage(IAsyncResult asyncResult)
         {
-            var bytesRead = _tcpClient.GetStream().EndRead(asyncResult);
-            Log(LogLevel.Debug, $"Receive message complete. Read {bytesRead} bytes.");
-            _headerArray.CopyTo(_bufferArray, 0);
-            Broadcast(new BufferReceivedMessage(_bufferArray));
+            var bytesRead = EndAsyncReadResult(asyncResult);
+            if (bytesRead < 0)
+                return;
 
-            ReceiveMessage();
+            Log(LogLevel.Trace, $"Receive message complete. Read {bytesRead} bytes.");
+            _headerArray.CopyTo(_bufferArray, 0);
+            Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Success, _bufferArray));
+
+            BeginReceiveMessage();
         }
         #endregion
 
         #region Helpers
-        /// <summary>
-        /// Receive message
-        /// </summary>
-        private void ReceiveMessage()
+
+        private void BeginReceiveMessage()
         {
             Log(LogLevel.Debug, "Waiting for header...");
             _headerArray = new byte[HeaderSize];
             _tcpClient.GetStream().BeginRead(_headerArray, 0, HeaderSize, ReceivedHeader, null);
+        }
+
+        /// <summary>
+        /// Returns the number of bytes read if succeeded,
+        /// otherwise broadcasts error in receiving, starts receiving new message and returns -1
+        /// </summary>
+        private int EndAsyncReadResult(IAsyncResult asyncResult)
+        {
+            var bytesRead = -1;
+            try
+            {
+                bytesRead = _tcpClient.GetStream().EndRead(asyncResult);
+            }
+            catch (IOException)
+            {
+                Log(LogLevel.Error, $"IOException when reading sokcet on {_ip}:{_port}");
+                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.SocketClosed, null));
+            }
+            catch (ObjectDisposedException)
+            {
+                Log(LogLevel.Error, $"ObjectDisposedException when reading sokcet on {_ip}:{_port}");
+                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.ClientDisposed, null));
+            }
+
+            return bytesRead;
         }
 
         /// <summary>

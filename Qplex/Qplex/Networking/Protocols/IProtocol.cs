@@ -17,16 +17,6 @@ namespace Qplex.Networking.Protocols
         void SetAgent(IAgent agent);
 
         /// <summary>
-        /// Connect
-        /// </summary>
-        void Connect();
-
-        /// <summary>
-        /// Close conneciton
-        /// </summary>
-        void Close();
-
-        /// <summary>
         /// Send message
         /// </summary>
         /// <param name="message">Message</param>

@@ -43,21 +43,12 @@ namespace Qplex.Networking.Agents
         }
 
         /// <summary>
-        /// Connect
+        /// Stopping parser
         /// </summary>
-        public void Connect()
+        public override void Stop()
         {
-            Log(LogLevel.Debug, "Connecting...");
-            _parser.Connect();
-        }
-
-        /// <summary>
-        /// Close conneciton
-        /// </summary>
-        public void Close()
-        {
-            Log(LogLevel.Debug, "Closing...");
-            _parser.Close();
+            _parser.Stop();
+            base.Stop();
         }
 
         /// <summary>

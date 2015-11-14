@@ -61,12 +61,12 @@ namespace Qplex.Layers
         /// </summary>
         public override void Stop()
         {
-            Log(LogLevel.Debug, "Stopping...");
-            base.Stop();
+            Log(LogLevel.Debug, "Stopping CommunicationLayer...");
             foreach (var netService in NetServicesList)
             {
                 netService.Stop();
             }
+            base.Stop();
         }
     }
 

@@ -43,6 +43,12 @@ namespace Qplex.Communication.Channels
         /// <param name="broadcaster">Subscriber</param>
         public void Subscribe(Broadcaster broadcaster)
         {
+            if (broadcaster == null)
+            {
+                _logger.Log(LogLevel.Error, "Tried to subscribe null broadcaster. Ignoring request.");
+                return;
+            }
+
             _logger.Log(LogLevel.Debug, "New subscriber {0}", broadcaster.GetType().Name);
             _subscribersList.Add(broadcaster);
         }

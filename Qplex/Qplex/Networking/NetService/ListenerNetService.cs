@@ -57,13 +57,13 @@ namespace Qplex.Networking.NetService
         /// </summary>
         public override void Stop()
         {
-            Log(LogLevel.Debug, "Stopping...");
-            base.Stop();
+            Log(LogLevel.Debug, "Stopping ListenerNetService...");
             _listener.Stop();
             foreach (var protocol in _protocolsList)
             {
-                protocol.Close();
+                protocol.Stop();
             }
+            base.Stop();
         }
 
         /// <summary>

@@ -9,16 +9,6 @@ namespace Qplex.Networking.Agents
     public interface IAgent : ICommunicator
     {
         /// <summary>
-        /// Connect
-        /// </summary>
-        void Connect();
-
-        /// <summary>
-        /// Close conneciton
-        /// </summary>
-        void Close();
-
-        /// <summary>
         /// Send message
         /// </summary>
         /// <param name="message">Message</param>
