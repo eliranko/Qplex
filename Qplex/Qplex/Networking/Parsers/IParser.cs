@@ -16,9 +16,20 @@ namespace Qplex.Networking.Parsers
         void Send(Message message);
 
         /// <summary>
+        /// Retrieve connection
+        /// </summary>
+        void RetrieveConnection();
+
+        /// <summary>
         /// Handle received buffer from connection
         /// </summary>
         [MessageHandler]
         void HandleConnectionBufferReceivedMessage(ConnectionBufferReceivedMessage message);
+
+        /// <summary>
+        /// Handle send status received from the connection
+        /// </summary>
+        [MessageHandler]
+        void HandleConnectionSendStatusMessage(ConnectionSendStatusMessage message);
     }
 }

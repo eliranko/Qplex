@@ -69,7 +69,8 @@
     <Compile Include="Messages\Networking\Connection\ConnectionBufferReceivedMessage.cs" />
     <Compile Include="Messages\Networking\Connection\ConnectionSendStatusMessage.cs" />
     <Compile Include="Messages\Networking\NewConnectionMessage.cs" />
-    <Compile Include="Messages\Networking\UnframedBufferMessage.cs" />
+    <Compile Include="Messages\Networking\Parser\ConnectionErrorMessage.cs" />
+    <Compile Include="Messages\Networking\Parser\UnframedBufferMessage.cs" />
     <Compile Include="Networking\Agents\Agent.cs" />
     <Compile Include="Networking\Agents\IAgent.cs" />
     <Compile Include="Networking\Connection\IConnection.cs" />

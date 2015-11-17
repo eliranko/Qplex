@@ -12,7 +12,8 @@ namespace Qplex.Networking.Protocols
     /// interested about (such as keep-alive).
     /// </summary>
     /// <typeparam name="TIterator">Messages iterator</typeparam>
-    public class Protocol<TIterator> : Communicator<TIterator>, IProtocol where TIterator : IMessagesIterator, new()
+    public class Protocol<TIterator> : Communicator<TIterator>, IProtocol
+        where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Network agent
@@ -37,7 +38,6 @@ namespace Qplex.Networking.Protocols
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="agent">Agent</param>
         public Protocol(IAgent agent)
         {
             _agent = agent;
@@ -50,7 +50,6 @@ namespace Qplex.Networking.Protocols
         /// <summary>
         /// Set agent
         /// </summary>
-        /// <param name="agent">Network agent</param>
         public void SetAgent(IAgent agent)
         {
             Log(LogLevel.Debug, "Setting new agent");
@@ -65,7 +64,14 @@ namespace Qplex.Networking.Protocols
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            return _agent.Start() && base.Start();
+            if (_agent.Start() && base.Start())
+            {
+                Log(LogLevel.Trace, "Protocol started successfully");
+                return true;
+            }
+
+            Log(LogLevel.Fatal, "Protocol failed to start");
+            return false;
         }
 
         /// <summary>
@@ -75,6 +81,7 @@ namespace Qplex.Networking.Protocols
         {
             _agent.Stop();
             base.Stop();
+            Log(LogLevel.Trace, "Protcol stopped successfully");
         }
 
         /// <summary>
@@ -83,6 +90,7 @@ namespace Qplex.Networking.Protocols
         /// <param name="message">Message</param>
         public void Send(Message message)
         {
+            Log(LogLevel.Trace, "Sending message throught agent");
             _agent.Send(message);
         }
     }

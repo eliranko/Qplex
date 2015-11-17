@@ -49,7 +49,14 @@ namespace Qplex.Networking.NetService
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            return _listener.Start() && base.Start();
+            if (_listener.Start() && base.Start())
+            {
+                Log(LogLevel.Trace, "ListenerNetService started successfully");
+                return true;
+            }
+
+            Log(LogLevel.Fatal, "ListenerNetService failed to start");
+            return false;
         }
 
         /// <summary>
@@ -57,13 +64,13 @@ namespace Qplex.Networking.NetService
         /// </summary>
         public override void Stop()
         {
-            Log(LogLevel.Debug, "Stopping ListenerNetService...");
             _listener.Stop();
             foreach (var protocol in _protocolsList)
             {
                 protocol.Stop();
             }
             base.Stop();
+            Log(LogLevel.Trace, "ListenerNetService stopped successfully");
         }
 
         /// <summary>
@@ -82,7 +89,6 @@ namespace Qplex.Networking.NetService
         /// <summary>
         /// Handle new connection
         /// </summary>
-        /// <param name="message">NewConnectionMessage</param>
         [MessageHandler]
         public void HandleNewConnectionMessage(NewConnectionMessage message)
         {

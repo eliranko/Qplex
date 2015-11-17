@@ -126,7 +126,7 @@ namespace Qplex.Networking.Connection
         {
             if (_tcpClient.Connected)
             {
-                Log(LogLevel.Debug, $"Begin async write of size {buffer.Length} to {_ip}:{_port}");
+                Log(LogLevel.Trace, $"Begin async write of size {buffer.Length} to {_ip}:{_port}");
                 _tcpClient.GetStream().BeginWrite(buffer, 0, buffer.Length, SendComplete, null);
             }
             else
@@ -142,10 +142,10 @@ namespace Qplex.Networking.Connection
         /// <param name="asyncResult">Async result</param>
         private void SendComplete(IAsyncResult asyncResult)
         {
-            Log(LogLevel.Debug, "Send complete");
             try
             {
                 _tcpClient.GetStream().EndWrite(asyncResult);
+                Log(LogLevel.Debug, "Send complete");
                 Broadcast(new ConnectionSendStatusMessage(ConnectionSocketStatus.Success));
             }
             catch (IOException)
@@ -196,7 +196,7 @@ namespace Qplex.Networking.Connection
             if (bytesRead < 0)
                 return;
 
-            Log(LogLevel.Trace, $"Receive message complete. Read {bytesRead} bytes.");
+            Log(LogLevel.Debug, $"Receive message complete. Read {bytesRead} bytes.");
             _headerArray.CopyTo(_bufferArray, 0);
             Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Success, _bufferArray));
 
@@ -208,7 +208,7 @@ namespace Qplex.Networking.Connection
 
         private void BeginReceiveMessage()
         {
-            Log(LogLevel.Debug, "Waiting for header...");
+            Log(LogLevel.Trace, "Waiting for header...");
             _headerArray = new byte[HeaderSize];
             _tcpClient.GetStream().BeginRead(_headerArray, 0, HeaderSize, ReceivedHeader, null);
         }
@@ -239,10 +239,8 @@ namespace Qplex.Networking.Connection
         }
 
         /// <summary>
-        /// Convert arbitray size of byte array to ulong
+        /// Convert arbitray size of byte array to uint
         /// </summary>
-        /// <param name="array">Byte array</param>
-        /// <returns>ulong</returns>
         private uint ConvertLittleEndian(byte[] array)
         {
             var pos = 0;

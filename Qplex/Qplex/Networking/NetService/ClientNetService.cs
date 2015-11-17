@@ -19,7 +19,6 @@ namespace Qplex.Networking.NetService
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="protocol">Protocol</param>
         public ClientNetService(IProtocol protocol)
         {
             _protocol = protocol;
@@ -32,8 +31,14 @@ namespace Qplex.Networking.NetService
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            _protocol.Start();
-            return base.Start();
+            if (_protocol.Start() && base.Start())
+            {
+                Log(LogLevel.Trace, "ClientNetService started successfully");
+                return true;
+            }
+
+            Log(LogLevel.Fatal, "ClientNetService failed to start");
+            return false;
         }
 
         /// <summary>
@@ -41,15 +46,14 @@ namespace Qplex.Networking.NetService
         /// </summary>
         public override void Stop()
         {
-            Log(LogLevel.Debug, "Stopping ClientNetService...");
             _protocol.Stop();
             base.Stop();
+            Log(LogLevel.Trace, "ClientNetService stopped successfully");
         }
 
         /// <summary>
         /// Send message
         /// </summary>
-        /// <param name="message">Message</param>
         public override void Send(Message message)
         {
             Log(LogLevel.Debug, $"Sending message:{message.GetType().Name}");

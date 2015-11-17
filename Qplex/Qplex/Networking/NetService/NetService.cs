@@ -30,13 +30,11 @@ namespace Qplex.Networking.NetService
         /// <summary>
         /// Send message
         /// </summary>
-        /// <param name="message">Message</param>
         public abstract void Send(Message message);
 
         /// <summary>
         /// Broadcast message to protocols
         /// </summary>
-        /// <param name="message">Message</param>
         public void BroadcastToProtocols(Message message)
         {
             ServiceToProtocolChannel.Broadcast(message, BroadcasterGuid);

@@ -1,5 +1,7 @@
-﻿using Qplex.Communication.Handlers;
+﻿using Qplex.Attributes;
+using Qplex.Communication.Handlers;
 using Qplex.Messages;
+using Qplex.Messages.Networking.Parser;
 
 namespace Qplex.Networking.Agents
 {
@@ -11,7 +13,18 @@ namespace Qplex.Networking.Agents
         /// <summary>
         /// Send message
         /// </summary>
-        /// <param name="message">Message</param>
         void Send(Message message);
+
+        /// <summary>
+        /// Handle connection socket error message
+        /// </summary>
+        [MessageHandler]
+        void HandleConnectionSocketErrorMessage(ConnectionErrorMessage message);
+
+        /// <summary>
+        /// Handle unframed message
+        /// </summary>
+        [MessageHandler]
+        void HandleUnframedBufferMessage(UnframedBufferMessage message);
     }
 }

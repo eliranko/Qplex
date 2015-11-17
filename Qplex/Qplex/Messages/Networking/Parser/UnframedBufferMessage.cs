@@ -1,4 +1,4 @@
-﻿namespace Qplex.Messages.Networking
+﻿namespace Qplex.Messages.Networking.Parser
 {
     /// <summary>
     /// Unframed buffer message
@@ -13,7 +13,6 @@
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="message">Message</param>
         public UnframedBufferMessage(Message message)
         {
             Message = message;

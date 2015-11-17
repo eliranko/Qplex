@@ -4,7 +4,7 @@ using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
-using Qplex.Messages.Networking;
+using Qplex.Messages.Networking.Parser;
 using Qplex.Networking.Parsers;
 
 namespace Qplex.Networking.Agents
@@ -13,7 +13,8 @@ namespace Qplex.Networking.Agents
     /// Network agent. Agent sends and receives messsages over network.
     /// </summary>
     /// <typeparam name="TIterator">Messages iterator</typeparam>
-    public class Agent<TIterator> : Communicator<TIterator>, IAgent where TIterator : IMessagesIterator, new()
+    public class Agent<TIterator> : Communicator<TIterator>, IAgent
+        where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Parser
@@ -23,7 +24,6 @@ namespace Qplex.Networking.Agents
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="parser">Parser</param>
         public Agent(IParser parser)
         {
             _parser = parser;
@@ -39,7 +39,14 @@ namespace Qplex.Networking.Agents
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            return _parser.Start() && base.Start();
+            if (_parser.Start() && base.Start())
+            {
+                Log(LogLevel.Trace, "Agent started successfully");
+                return true;
+            }
+
+            Log(LogLevel.Fatal, "Agent failed to start");
+            return false;
         }
 
         /// <summary>
@@ -49,25 +56,35 @@ namespace Qplex.Networking.Agents
         {
             _parser.Stop();
             base.Stop();
+            Log(LogLevel.Trace, "Agent stopped successfully");
         }
 
         /// <summary>
         /// Send message
         /// </summary>
-        /// <param name="message">Message</param>
         public void Send(Message message)
         {
+            Log(LogLevel.Trace, "Sending message through parser");
             _parser.Send(message);
+        }
+
+        /// <summary>
+        /// Handle connection socket error message
+        /// </summary>
+        [MessageHandler]
+        public void HandleConnectionSocketErrorMessage(ConnectionErrorMessage message)
+        {
+            Log(LogLevel.Trace, "Handling connection error");
+            _parser.RetrieveConnection();
         }
 
         /// <summary>
         /// Handle unframed message
         /// </summary>
-        /// <param name="message">UnframedBufferMessage</param>
         [MessageHandler]
         public void HandleUnframedBufferMessage(UnframedBufferMessage message)
         {
-            Log(LogLevel.Debug, $"Handling new unframed buffer:{message.Message.GetType().Name}");
+            Log(LogLevel.Trace, $"Handling new unframed buffer:{message.Message.GetType().Name}");
             Broadcast(message.Message);
         }
     }

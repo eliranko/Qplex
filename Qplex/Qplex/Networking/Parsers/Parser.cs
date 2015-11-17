@@ -8,6 +8,7 @@ using Qplex.Messages;
 using Qplex.Messages.Handlers;
 using Qplex.Messages.Networking;
 using Qplex.Messages.Networking.Connection;
+using Qplex.Messages.Networking.Parser;
 using Qplex.Networking.Connection;
 
 namespace Qplex.Networking.Parsers
@@ -16,7 +17,8 @@ namespace Qplex.Networking.Parsers
     /// Parser sends and receives Message objects.
     /// </summary>
     /// <typeparam name="TIterator">Messages iterator</typeparam>
-    public class Parser<TIterator> : Communicator<TIterator>, IParser where TIterator : IMessagesIterator, new()
+    public class Parser<TIterator> : Communicator<TIterator>, IParser
+        where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Connectoin
@@ -57,7 +59,14 @@ namespace Qplex.Networking.Parsers
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            return _connection.ConnectAndReceive() == ConnectionConnectStatus.Success && base.Start();
+            if (_connection.ConnectAndReceive() == ConnectionConnectStatus.Success && base.Start())
+            {
+                Log(LogLevel.Trace, "Parser started successfully");
+                return true;
+            }
+
+            Log(LogLevel.Fatal, "Parser failed to start");
+            return false;
         }
 
         /// <summary>
@@ -67,6 +76,7 @@ namespace Qplex.Networking.Parsers
         {
             _connection.Close();
             base.Stop();
+            Log(LogLevel.Trace, "Parser stopped successfully");
         }
 
         /// <summary>
@@ -74,7 +84,17 @@ namespace Qplex.Networking.Parsers
         /// </summary>
         public void Send(Message message)
         {
+            Log(LogLevel.Trace, "Sending message through connection");
             _connection.Send(_framingAlgorithm.FrameBuffer(_messageFactory.Serialize(message)));
+        }
+
+        /// <summary>
+        /// Retrieve connection
+        /// </summary>
+        public void RetrieveConnection()
+        {
+            Log(LogLevel.Trace, "Retrieving connection...");
+            _connection.ConnectAndReceive();
         }
 
         /// <summary>
@@ -83,9 +103,22 @@ namespace Qplex.Networking.Parsers
         [MessageHandler]
         public void HandleConnectionBufferReceivedMessage(ConnectionBufferReceivedMessage message)
         {
-            Log(LogLevel.Debug, $"Handling new buffer of size:{message.Buffer.Length}");
+            Log(LogLevel.Trace, $"Handling new buffer of size:{message.Buffer.Length}");
             Broadcast(new UnframedBufferMessage(
                 _messageFactory.Deserialize(_framingAlgorithm.UnframeBuffer(message.Buffer))));
+        }
+
+        /// <summary>
+        /// Handle send status received from the connection
+        /// </summary>
+        [MessageHandler]
+        public void HandleConnectionSendStatusMessage(ConnectionSendStatusMessage message)
+        {
+            Log(LogLevel.Trace, "Handling ConnectionSendStatusMessage message");
+
+            if (message.ConnectionSocketStatus == ConnectionSocketStatus.Success) return;
+            Log(LogLevel.Error, "Connection socket has failed, notifying agent...");
+            Broadcast(new ConnectionErrorMessage());
         }
     }
 
