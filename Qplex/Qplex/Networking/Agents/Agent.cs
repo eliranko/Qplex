@@ -4,6 +4,7 @@ using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
+using Qplex.Messages.Networking.Agent;
 using Qplex.Messages.Networking.Parser;
 using Qplex.Networking.Parsers;
 
@@ -41,7 +42,7 @@ namespace Qplex.Networking.Agents
         {
             if (_parser.Start() && base.Start())
             {
-                Log(LogLevel.Trace, "Agent started successfully");
+                Log(LogLevel.Debug, "Agent started successfully");
                 return true;
             }
 
@@ -56,7 +57,7 @@ namespace Qplex.Networking.Agents
         {
             _parser.Stop();
             base.Stop();
-            Log(LogLevel.Trace, "Agent stopped successfully");
+            Log(LogLevel.Debug, "Agent stopped successfully");
         }
 
         /// <summary>
@@ -72,7 +73,7 @@ namespace Qplex.Networking.Agents
         /// Handle connection socket error message
         /// </summary>
         [MessageHandler]
-        public void HandleConnectionSocketErrorMessage(ConnectionErrorMessage message)
+        public void HandleConnectionSocketErrorMessage(ParserConnectionErrorMessage message)
         {
             Log(LogLevel.Trace, "Handling connection error");
             _parser.RetrieveConnection();
@@ -82,10 +83,10 @@ namespace Qplex.Networking.Agents
         /// Handle unframed message
         /// </summary>
         [MessageHandler]
-        public void HandleUnframedBufferMessage(UnframedBufferMessage message)
+        public void HandleUnframedBufferMessage(ParserUnframedBufferMessage message)
         {
             Log(LogLevel.Trace, $"Handling new unframed buffer:{message.Message.GetType().Name}");
-            Broadcast(message.Message);
+            Broadcast(new NewIncomingMessage(message.Message));
         }
     }
 

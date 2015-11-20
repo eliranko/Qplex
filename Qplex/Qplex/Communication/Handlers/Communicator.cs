@@ -15,12 +15,14 @@ namespace Qplex.Communication.Handlers
     /// Communicator broadcasts and receives messages.
     /// </summary>
     /// <typeparam name="TIterator">Message iterator</typeparam>
-    public class Communicator<TIterator> : Broadcaster, ICommunicator where TIterator : IMessagesIterator, new()
+    public class Communicator<TIterator> : Broadcaster, ICommunicator
+        where TIterator : IMessagesIterator, new()
     {
-        /// <summary>
-        /// Dispatcher
-        /// </summary>
+        private const int InitMessageTimeout = 5000;
+
         private readonly Dispatcher<TIterator> _dispatcher;
+        private IList<Type> _initMessages;
+        private readonly List<Message> _waitingList;
 
         /// <summary>
         /// Ctor
@@ -28,6 +30,8 @@ namespace Qplex.Communication.Handlers
         public Communicator()
         {
             _dispatcher = new Dispatcher<TIterator>($"{GetType().Name}Dispatcher");
+            _initMessages = new List<Type>();
+            _waitingList = new List<Message>();
             LoadMessageHandlers();
         }
 
@@ -55,7 +59,22 @@ namespace Qplex.Communication.Handlers
         /// <param name="message">New received message</param>
         public void NewMessage(Message message)
         {
-            _dispatcher.Dispatch(message);
+            if (!_initMessages.Any())
+                _dispatcher.Dispatch(message);
+
+            else if (_initMessages.Any() && !_initMessages.Contains(message.GetType()))
+                _waitingList.Add(message);
+
+            else
+            {
+                var messageType = message.GetType();
+                Log(LogLevel.Trace, $"Received initial message of type: {messageType.Name}");
+                _initMessages.Remove(messageType);
+                _dispatcher.Dispatch(message);
+
+                if(!_initMessages.Any())
+                    _waitingList.ForEach(_dispatcher.Dispatch);
+            }
         }
 
         /// <summary>
@@ -65,7 +84,7 @@ namespace Qplex.Communication.Handlers
         public void Notify(Message message)
         {
             Log(LogLevel.Debug, $"Notifing message:{message.GetType().Name}");
-            Task.Factory.StartNew(() => NewMessage(message));
+            NewMessage(message);
         }
 
         /// <summary>
@@ -81,6 +100,36 @@ namespace Qplex.Communication.Handlers
                 Thread.Sleep(milliseconds);
                 NewMessage(message);
             });
+        }
+
+        /// <summary>
+        /// Set initial number of message to receiving before starting layer
+        /// </summary>
+        /// <param name="messages">Messages requeired to initiate the communicator</param>
+        public void SetInitMessages(params Type[] messages)
+        {
+            Log(LogLevel.Debug, $"Setting initial message: {string.Join(",", messages.Select(type => type.Name))}");
+            _initMessages = messages.ToList();
+
+            Task.Factory.StartNew(() =>
+            {
+                Thread.Sleep(InitMessageTimeout);
+                if(_initMessages.Any())
+                    throw new TimeoutException("Timeout for initialization message has expired");
+            });
+        }
+
+        /// <summary>
+        /// Handle message if an handler exists, otherwise invoke action with message
+        /// </summary>
+        public void TunnelMessage(Message message, Action<Message> action)
+        {
+            if(_dispatcher.IsHandled(message.GetType()))
+            {
+                NewMessage(message);
+                return;
+            }
+            Task.Factory.StartNew(() => action.Invoke(message));
         }
 
         #region Reflection

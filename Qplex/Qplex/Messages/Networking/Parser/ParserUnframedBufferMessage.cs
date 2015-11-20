@@ -3,7 +3,7 @@
     /// <summary>
     /// Unframed buffer message
     /// </summary>
-    public class UnframedBufferMessage : Message
+    public class ParserUnframedBufferMessage : Message
     {
         /// <summary>
         /// Message
@@ -13,7 +13,7 @@
         /// <summary>
         /// Ctor
         /// </summary>
-        public UnframedBufferMessage(Message message)
+        public ParserUnframedBufferMessage(Message message)
         {
             Message = message;
         }

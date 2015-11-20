@@ -11,7 +11,8 @@ namespace Qplex.Communication.Handlers
     /// Dispatches messages between threads
     /// </summary>
     /// <typeparam name="TIterator">Message iterator</typeparam>
-    public class Dispatcher<TIterator> where TIterator : IMessagesIterator, new()
+    public class Dispatcher<TIterator> 
+        where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Logger
@@ -21,7 +22,7 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Threads list
         /// </summary>
-        private readonly IList<DispatcherThread> _threadsList;
+        private readonly List<DispatcherThread> _threadsList;
 
         /// <summary>
         /// Ctor
@@ -41,9 +42,7 @@ namespace Qplex.Communication.Handlers
         {
             var status = true;
             foreach (var dispatcherThread in _threadsList)
-            {
                 status = status && dispatcherThread.Start();
-            }
 
             return status;
         }
@@ -68,7 +67,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="threadName">Handling thread name</param>
         public void AddHandler(Type messageType, Action<Message> messageHandler, string threadName = "")
         {
-            _logger.Log(LogLevel.Debug, $"Adding handler of message:{messageType.Name}");
+            _logger.Log(LogLevel.Trace, $"Adding handler of message:{messageType.Name}");
             var dispatcherThread = GetThread(threadName) ?? CreateThread(threadName);
 
             dispatcherThread.AddHandler(messageType, messageHandler);
@@ -81,10 +80,20 @@ namespace Qplex.Communication.Handlers
         public void Dispatch(Message message)
         {
             var dispatcherThread = GetThread(message.GetType());
-            _logger.Log(LogLevel.Debug, $"Dispatcher message:{message.GetType().Name} to thread:{dispatcherThread?.Name}");
+            _logger.Log(LogLevel.Trace, $"Dispatcher message:{message.GetType().Name} to thread:{dispatcherThread?.Name}");
 
             //Handle message if there's an handler for it
             dispatcherThread?.Dispatch(message);
+        }
+
+        /// <summary>
+        /// Does an handler exsits for the given message type
+        /// </summary>
+        /// <param name="messageType">Message type</param>
+        /// <returns>True if an handler exists, false otherwise</returns>
+        public bool IsHandled(Type messageType)
+        {
+            return _threadsList.Exists(thread => thread.GetHandledMessages().Contains(messageType));
         }
 
         #region Helpers

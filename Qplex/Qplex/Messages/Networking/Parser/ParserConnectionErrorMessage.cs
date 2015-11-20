@@ -3,7 +3,7 @@
     /// <summary>
     /// Message notifying of a connection error
     /// </summary>
-    public class ConnectionErrorMessage : Message
+    public class ParserConnectionErrorMessage : Message
     {
     }
 }

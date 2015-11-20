@@ -76,14 +76,11 @@ namespace Qplex.Networking.NetService
         /// <summary>
         /// Send message
         /// </summary>
-        /// <param name="message">Message</param>
         public override void Send(Message message)
         {
             Log(LogLevel.Debug, $"Sending message:{message.GetType().Name}");
             foreach (var protocol in _protocolsList)
-            {
                 protocol.Send(message);
-            }
         }
 
         /// <summary>
@@ -99,6 +96,7 @@ namespace Qplex.Networking.NetService
         }
 
         #region Helpers
+
         /// <summary>
         /// Add protocol to service
         /// </summary>
@@ -109,6 +107,7 @@ namespace Qplex.Networking.NetService
             protocol.Start();
             _protocolsList.Add(protocol);
         }
+
         #endregion
     }
 

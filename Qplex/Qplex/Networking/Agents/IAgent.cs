@@ -19,12 +19,12 @@ namespace Qplex.Networking.Agents
         /// Handle connection socket error message
         /// </summary>
         [MessageHandler]
-        void HandleConnectionSocketErrorMessage(ConnectionErrorMessage message);
+        void HandleConnectionSocketErrorMessage(ParserConnectionErrorMessage message);
 
         /// <summary>
         /// Handle unframed message
         /// </summary>
         [MessageHandler]
-        void HandleUnframedBufferMessage(UnframedBufferMessage message);
+        void HandleUnframedBufferMessage(ParserUnframedBufferMessage message);
     }
 }

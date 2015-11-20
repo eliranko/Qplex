@@ -145,7 +145,7 @@ namespace Qplex.Networking.Connection
             try
             {
                 _tcpClient.GetStream().EndWrite(asyncResult);
-                Log(LogLevel.Debug, "Send complete");
+                Log(LogLevel.Trace, $"Send complete on {_ip}:{_port}");
                 Broadcast(new ConnectionSendStatusMessage(ConnectionSocketStatus.Success));
             }
             catch (IOException)
@@ -196,7 +196,7 @@ namespace Qplex.Networking.Connection
             if (bytesRead < 0)
                 return;
 
-            Log(LogLevel.Debug, $"Receive message complete. Read {bytesRead} bytes.");
+            Log(LogLevel.Trace, $"Receive message complete. Read {bytesRead} bytes.");
             _headerArray.CopyTo(_bufferArray, 0);
             Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Success, _bufferArray));
 
@@ -208,7 +208,7 @@ namespace Qplex.Networking.Connection
 
         private void BeginReceiveMessage()
         {
-            Log(LogLevel.Trace, "Waiting for header...");
+            Log(LogLevel.Trace, $"Begin receiving on {_ip}:{_port}");
             _headerArray = new byte[HeaderSize];
             _tcpClient.GetStream().BeginRead(_headerArray, 0, HeaderSize, ReceivedHeader, null);
         }

@@ -6,7 +6,6 @@ using Qplex.FramingAlgorithms;
 using Qplex.MessageFactories;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
-using Qplex.Messages.Networking;
 using Qplex.Messages.Networking.Connection;
 using Qplex.Messages.Networking.Parser;
 using Qplex.Networking.Connection;
@@ -104,7 +103,7 @@ namespace Qplex.Networking.Parsers
         public void HandleConnectionBufferReceivedMessage(ConnectionBufferReceivedMessage message)
         {
             Log(LogLevel.Trace, $"Handling new buffer of size:{message.Buffer.Length}");
-            Broadcast(new UnframedBufferMessage(
+            Broadcast(new ParserUnframedBufferMessage(
                 _messageFactory.Deserialize(_framingAlgorithm.UnframeBuffer(message.Buffer))));
         }
 
@@ -118,7 +117,7 @@ namespace Qplex.Networking.Parsers
 
             if (message.ConnectionSocketStatus == ConnectionSocketStatus.Success) return;
             Log(LogLevel.Error, "Connection socket has failed, notifying agent...");
-            Broadcast(new ConnectionErrorMessage());
+            Broadcast(new ParserConnectionErrorMessage());
         }
     }
 

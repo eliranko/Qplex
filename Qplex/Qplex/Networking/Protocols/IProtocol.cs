@@ -1,5 +1,7 @@
-﻿using Qplex.Communication.Handlers;
+﻿using Qplex.Attributes;
+using Qplex.Communication.Handlers;
 using Qplex.Messages;
+using Qplex.Messages.Networking.Agent;
 using Qplex.Networking.Agents;
 
 namespace Qplex.Networking.Protocols
@@ -19,7 +21,12 @@ namespace Qplex.Networking.Protocols
         /// <summary>
         /// Send message
         /// </summary>
-        /// <param name="message">Message</param>
         void Send(Message message);
+
+        /// <summary>
+        /// Handle new incoming message
+        /// </summary>
+        [MessageHandler]
+        void HandleNewIncomingMessage(NewIncomingMessage message);
     }
 }

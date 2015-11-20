@@ -1,4 +1,5 @@
-﻿using Qplex.Messages;
+﻿using System;
+using Qplex.Messages;
 
 namespace Qplex.Communication.Handlers
 {
@@ -36,5 +37,16 @@ namespace Qplex.Communication.Handlers
         /// <param name="message">Message</param>
         /// <param name="milliseconds">Delay time</param>
         void DelayedNotify(Message message, int milliseconds);
+
+        /// <summary>
+        /// Set initial number of message to receiving before starting layer
+        /// </summary>
+        /// <param name="messages">Messages requeired to initiate the communicator</param>
+        void SetInitMessages(params Type[] messages);
+        
+        /// <summary>
+        /// Handle message if an handler exists, otherwise invoke action with message
+        /// </summary>
+        void TunnelMessage(Message message, Action<Message> action);
     }
 }

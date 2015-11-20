@@ -59,7 +59,7 @@ namespace Qplex.Communication.Handlers
         {
             foreach (var channel in _channelsList)
             {
-                Log(LogLevel.Debug, $"Broadcast message:{message.GetType().Name} to channel:{channel.Name}");
+                Log(LogLevel.Trace, $"Broadcast message:{message.GetType().Name} to channel:{channel.Name}");
                 channel.Broadcast(message, BroadcasterGuid);
             }
         }

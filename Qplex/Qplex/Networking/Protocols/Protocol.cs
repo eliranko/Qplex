@@ -1,8 +1,10 @@
 ﻿using NLog;
+using Qplex.Attributes;
 using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
+using Qplex.Messages.Networking.Agent;
 using Qplex.Networking.Agents;
 
 namespace Qplex.Networking.Protocols
@@ -92,6 +94,15 @@ namespace Qplex.Networking.Protocols
         {
             Log(LogLevel.Trace, "Sending message throught agent");
             _agent.Send(message);
+        }
+
+        /// <summary>
+        /// Handle new incoming message
+        /// </summary>
+        [MessageHandler]
+        public void HandleNewIncomingMessage(NewIncomingMessage message)
+        {
+            TunnelMessage(message.Message, Broadcast);
         }
     }
 

@@ -43,6 +43,10 @@ namespace Qplex.Networking.Connection
         /// </summary>
         Success,
         /// <summary>
+        /// Error which cannot be handled
+        /// </summary>
+        Error,
+        /// <summary>
         /// The underlying Socket is closed
         /// </summary>
         SocketClosed,
@@ -76,7 +80,6 @@ namespace Qplex.Networking.Connection
         /// <summary>
         /// Send buffer over socket
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         void Send(byte[] buffer);
     }
 }
