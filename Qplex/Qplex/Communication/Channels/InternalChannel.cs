@@ -10,12 +10,12 @@ namespace Qplex.Communication.Channels
     /// <summary>
     /// Channel is a tune which passes messages to all of its subscribers (publis/subscribe).
     /// </summary>
-    public class InternalChannel
+    public class InternalChannel : LogWrapper, IInternalChannel
     {
         /// <summary>
-        /// Logger
+        /// Subscribers
         /// </summary>
-        private readonly Logger _logger;
+        private readonly IList<IBroadcaster> _subscribersList;
 
         /// <summary>
         /// Channel's name
@@ -23,44 +23,63 @@ namespace Qplex.Communication.Channels
         public string Name { get; }
 
         /// <summary>
-        /// Subscribers
+        /// Ctor
         /// </summary>
-        private readonly IList<Broadcaster> _subscribersList;
+        public InternalChannel()
+        {
+            Name = GetType().Name;
+            Logger = LogManager.GetLogger(Name);
+            _subscribersList = new List<IBroadcaster>();
+        }
 
         /// <summary>
         /// Ctor
         /// </summary>
+        /// <param name="name">Channel's name</param>
         public InternalChannel(string name)
         {
             Name = name;
-            _logger = LogManager.GetLogger(name);
-            _subscribersList = new List<Broadcaster>();
+            Logger = LogManager.GetLogger(name);
+            _subscribersList = new List<IBroadcaster>();
         }
 
         /// <summary>
         /// Subscribe to the channel
         /// </summary>
         /// <param name="broadcaster">Subscriber</param>
-        public void Subscribe(Broadcaster broadcaster)
+        /// <returns>True on successfull subscription, false otherwise.</returns>
+        public bool Subscribe(Broadcaster broadcaster)
         {
             if (broadcaster == null)
             {
-                _logger.Log(LogLevel.Error, "Tried to subscribe null broadcaster. Ignoring request.");
-                return;
+                Log(LogLevel.Error, "Tried to subscribe null broadcaster. Ignoring request.");
+                return false;
             }
 
-            _logger.Log(LogLevel.Debug, "New subscriber {0}", broadcaster.GetType().Name);
+            Log(LogLevel.Trace, $"New subscriber {broadcaster.GetType().Name}");
             _subscribersList.Add(broadcaster);
+            return true;
         }
 
         /// <summary>
         /// Unsubscribe from channel
         /// </summary>
         /// <param name="broadcaster">Subscriber</param>
-        public void Unsubscribe(Broadcaster broadcaster)
+        /// <returns>True on successfull unsubscription, false otherwise.</returns>
+        public bool Unsubscribe(Broadcaster broadcaster)
         {
-            _logger.Log(LogLevel.Debug, "Unsubscriber {0}", broadcaster.GetType().Name);
-            _subscribersList.Remove(broadcaster);
+            if (broadcaster == null)
+            {
+                Log(LogLevel.Error, "Tried to unsubscribe null broadcaster. Ignoring request.");
+                return false;
+            }
+
+            var status = _subscribersList.Remove(broadcaster);
+            if(status)
+                Log(LogLevel.Trace, $"Unsubscriber {broadcaster.GetType().Name}");
+            else
+                Log(LogLevel.Warn, $"Failed unsubscribing {broadcaster.GetType().Name}");
+            return _subscribersList.Remove(broadcaster);
         }
 
         /// <summary>
@@ -71,12 +90,35 @@ namespace Qplex.Communication.Channels
         public void Broadcast(Message message, Guid callerGuid)
         {
             foreach (var subscriber in _subscribersList.Where(subscriber =>
-                subscriber.BroadcasterGuid != callerGuid &&
+                subscriber.TypeGuid != callerGuid &&
                 subscriber.GetType().GetInterfaces().Contains(typeof(ICommunicator))))
             {
-                _logger.Log(LogLevel.Debug, "Broadcasted {0} to {1}", message.GetType().Name, subscriber.GetType().Name);
+                Log(LogLevel.Debug, $"Broadcasted {message.Name} to {subscriber.Name}");
                 ((ICommunicator)subscriber).NewMessage(message);
             }
+        }
+
+        /// <summary>
+        /// Equals
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            var internalChannel = obj as InternalChannel;
+            if (internalChannel == null) return false;
+
+            return GetType().GUID == internalChannel.GetType().GUID;
+        }
+
+        /// <summary>
+        /// Get Hash code
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+// ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
+            return base.GetHashCode();
         }
     }
 }

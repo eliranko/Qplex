@@ -36,14 +36,14 @@ namespace Qplex.Messages.Handlers
         {
             lock (Inventory)
             {
+                _queue.Enqueue(message);
+
                 //If the queue is empty, a thread may be sleeping on Inventory.
                 if (!HasNext())
                 {
                     //Notify threads that a new message has arrived
                     Monitor.PulseAll(Inventory);
                 }
-
-                _queue.Enqueue(message);
             }
         }
 

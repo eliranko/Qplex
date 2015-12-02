@@ -7,7 +7,8 @@ namespace Qplex.Layers
     /// Layer object is used for internal(in process only) message passing and handling.
     /// </summary>
     /// /// <typeparam name="TIterator">Messages iterator</typeparam>
-    public abstract class Layer<TIterator> : Communicator<TIterator>, ILayer where TIterator : IMessagesIterator, new()
+    public abstract class Layer<TIterator> : Communicator<TIterator>, ILayer
+        where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Layer's init method. Initiate everything the layer needs before starting.

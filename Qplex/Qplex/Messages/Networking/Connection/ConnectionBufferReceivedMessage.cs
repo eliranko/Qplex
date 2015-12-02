@@ -27,5 +27,15 @@ namespace Qplex.Messages.Networking.Connection
             ConnectionSocketStatus = connectionSocketStatus;
             Buffer = buffer;
         }
+
+        /// <summary>
+        /// To string
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return
+                $"ConnectionBufferReceivedMessage with buffer size of: {Buffer.Length} and socket status: {ConnectionSocketStatus}";
+        }
     }
 }

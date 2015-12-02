@@ -1,7 +1,7 @@
-﻿using Qplex.FramingAlgorithms;
-using Qplex.Messages;
+﻿using Qplex.Messages;
+using Qplex.Networking.FramingAlgorithms;
 
-namespace Qplex.MessageFactories
+namespace Qplex.Networking.MessageFactories
 {
     /// <summary>
     /// Message factory serializes and deserializes Message objects

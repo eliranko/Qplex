@@ -20,5 +20,14 @@ namespace Qplex.Messages.Networking.Connection
         {
             ConnectionSocketStatus = connectionSocketStatus;
         }
+
+        /// <summary>
+        /// To string
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"ConnectionSendStatusMessage with socket status: {ConnectionSocketStatus}";
+        }
     }
 }

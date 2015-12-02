@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Qplex.Communication.Channels;
 using Qplex.Messages;
 
@@ -12,19 +13,31 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Type guid
         /// </summary>
-        Guid BroadcasterGuid { get; }
+        Guid TypeGuid { get; }
+
+        /// <summary>
+        /// Broadcaster's name
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
+        /// Get the subscribed internal channels
+        /// </summary>
+        IEnumerable<IInternalChannel> GetInternalChannels();
 
         /// <summary>
         /// Subscribe to channel
         /// </summary>
         /// <param name="internalChannel">Channel</param>
-        void SubscribeToChannel(InternalChannel internalChannel);
+        /// <returns>True on successfull subscription, false otherwise.</returns>
+        bool SubscribeToChannel(InternalChannel internalChannel);
 
         /// <summary>
         /// Unsubscribe from channel
         /// </summary>
         /// <param name="internalChannel">Channel</param>
-        void UnsubscribeFromChannel(InternalChannel internalChannel);
+        /// <returns>True on successfull usubscription, false otherwise.</returns>
+        bool UnsubscribeFromChannel(InternalChannel internalChannel);
 
         /// <summary>
         /// Broadcast message to channels

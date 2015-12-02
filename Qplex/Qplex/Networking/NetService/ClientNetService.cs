@@ -9,7 +9,8 @@ namespace Qplex.Networking.NetService
     /// Client net service
     /// </summary>
     /// <typeparam name="TIterator">Message iterator</typeparam>
-    public class ClientNetService<TIterator> : NetService<TIterator> where TIterator : IMessagesIterator, new()
+    public class ClientNetService<TIterator> : NetService<TIterator>
+        where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Network protocl
@@ -33,7 +34,7 @@ namespace Qplex.Networking.NetService
         {
             if (_protocol.Start() && base.Start())
             {
-                Log(LogLevel.Trace, "ClientNetService started successfully");
+                Log(LogLevel.Trace, $"ClientNetService: {Name} started successfully");
                 return true;
             }
 
@@ -48,7 +49,7 @@ namespace Qplex.Networking.NetService
         {
             _protocol.Stop();
             base.Stop();
-            Log(LogLevel.Trace, "ClientNetService stopped successfully");
+            Log(LogLevel.Trace, $"ClientNetService: {Name} stopped successfully");
         }
 
         /// <summary>
@@ -56,7 +57,7 @@ namespace Qplex.Networking.NetService
         /// </summary>
         public override void Send(Message message)
         {
-            Log(LogLevel.Debug, $"Sending message:{message.GetType().Name}");
+            Log(LogLevel.Debug, $"Sending message:{message.Name}");
             _protocol.Send(message);
         }
     }

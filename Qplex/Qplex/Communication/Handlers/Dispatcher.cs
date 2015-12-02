@@ -11,18 +11,18 @@ namespace Qplex.Communication.Handlers
     /// Dispatches messages between threads
     /// </summary>
     /// <typeparam name="TIterator">Message iterator</typeparam>
-    public class Dispatcher<TIterator> 
+    public class Dispatcher<TIterator> : LogWrapper
         where TIterator : IMessagesIterator, new()
     {
-        /// <summary>
-        /// Logger
-        /// </summary>
-        private readonly Logger _logger;
-
         /// <summary>
         /// Threads list
         /// </summary>
         private readonly List<DispatcherThread> _threadsList;
+
+        /// <summary>
+        /// Dispatcher's name
+        /// </summary>
+        private readonly string _name;
 
         /// <summary>
         /// Ctor
@@ -30,7 +30,8 @@ namespace Qplex.Communication.Handlers
         /// <param name="name">Dispatcher's name</param>
         public Dispatcher(string name)
         {
-            _logger = LogManager.GetLogger(name);
+            _name = name;
+            Logger = LogManager.GetLogger(name);
             _threadsList = new List<DispatcherThread>();
         }
 
@@ -40,11 +41,8 @@ namespace Qplex.Communication.Handlers
         /// <returns>Initiation status</returns>
         public bool Start()
         {
-            var status = true;
-            foreach (var dispatcherThread in _threadsList)
-                status = status && dispatcherThread.Start();
-
-            return status;
+            Log(LogLevel.Trace, $"Starting dispatcher: {_name}");
+            return _threadsList.Aggregate(true, (current, dispatcherThread) => current && dispatcherThread.Start());
         }
 
         /// <summary>
@@ -52,11 +50,9 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         public void Stop()
         {
-            _logger.Log(LogLevel.Debug, "Starting...");
+            Log(LogLevel.Debug, $"Stopping dispatcher: {_name}");
             foreach (var dispatcherThread in _threadsList)
-            {
                 dispatcherThread.Stop();
-            }
         }
 
         /// <summary>
@@ -67,9 +63,9 @@ namespace Qplex.Communication.Handlers
         /// <param name="threadName">Handling thread name</param>
         public void AddHandler(Type messageType, Action<Message> messageHandler, string threadName = "")
         {
-            _logger.Log(LogLevel.Trace, $"Adding handler of message:{messageType.Name}");
-            var dispatcherThread = GetThread(threadName) ?? CreateThread(threadName);
+            Log(LogLevel.Trace, $"Adding handler of message:{messageType.Name}");
 
+            var dispatcherThread = GetThread(threadName) ?? CreateThread(threadName);
             dispatcherThread.AddHandler(messageType, messageHandler);
         }
 
@@ -80,7 +76,8 @@ namespace Qplex.Communication.Handlers
         public void Dispatch(Message message)
         {
             var dispatcherThread = GetThread(message.GetType());
-            _logger.Log(LogLevel.Trace, $"Dispatcher message:{message.GetType().Name} to thread:{dispatcherThread?.Name}");
+            Log(LogLevel.Trace,
+                $"Dispatcher message:{message.Name} to thread:{dispatcherThread?.Name ?? $"Message is not being handled by currect dispatcher: {_name}"}");
 
             //Handle message if there's an handler for it
             dispatcherThread?.Dispatch(message);
@@ -124,7 +121,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="name">New thread's name</param>
         private DispatcherThread CreateThread(string name)
         {
-            _logger.Log(LogLevel.Debug, $"Creating thread {name}");
+            Log(LogLevel.Debug, $"Creating thread {name}");
             var thread = new DispatcherThread(name, new TIterator());
             _threadsList.Add(thread);
 

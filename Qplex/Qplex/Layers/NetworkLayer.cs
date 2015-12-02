@@ -12,12 +12,13 @@ namespace Qplex.Layers
     /// and processes communication using Message object.
     /// </summary>
     /// <typeparam name="TIterator">Message iterator</typeparam>
-    public abstract class CommunicationLayer<TIterator> : Layer<TIterator> where TIterator : IMessagesIterator, new()
+    public abstract class NetworkLayer<TIterator> : Layer<TIterator>
+        where TIterator : IMessagesIterator, new()
     {
         /// <summary>
         /// Net services list
         /// </summary>
-        protected readonly IList<INetService> NetServicesList;
+        protected readonly List<INetService> NetServicesList;
 
         /// <summary>
         /// Layer to services channel
@@ -27,7 +28,7 @@ namespace Qplex.Layers
         /// <summary>
         /// Ctor
         /// </summary>
-        protected CommunicationLayer()
+        protected NetworkLayer()
         {
             _layerToServicesChannel = new InternalChannel(
                 $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToServicesChannel");
@@ -42,7 +43,7 @@ namespace Qplex.Layers
         /// <param name="netService">Network service</param>
         protected void AddService(INetService netService)
         {
-            Log(LogLevel.Debug, $"Added service {netService.GetType().Name}");
+            Log(LogLevel.Debug, $"Added service {netService.Name}");
             netService.SubscribeToChannel(_layerToServicesChannel);
             NetServicesList.Add(netService);
         }
@@ -53,6 +54,7 @@ namespace Qplex.Layers
         /// <returns>Operation status</returns>
         public override bool Start()
         {
+            Log(LogLevel.Trace, $"Starting NetworkLayer: {Name}");
             return NetServicesList.Aggregate(true, (current, netService) => current & netService.Start()) && base.Start();
         }
 
@@ -61,11 +63,8 @@ namespace Qplex.Layers
         /// </summary>
         public override void Stop()
         {
-            Log(LogLevel.Debug, "Stopping CommunicationLayer...");
-            foreach (var netService in NetServicesList)
-            {
-                netService.Stop();
-            }
+            Log(LogLevel.Debug, $"Stopping NetworkLayer: {Name}");
+            NetServicesList.ForEach(service => service.Stop());
             base.Stop();
         }
     }
@@ -73,7 +72,7 @@ namespace Qplex.Layers
     /// <summary>
     /// Communication layer implemented using queue messages iterator
     /// </summary>
-    public abstract class CommunicationLayer : CommunicationLayer<QueueMessagesIterator>
+    public abstract class NetworkLayer : NetworkLayer<QueueMessagesIterator>
     {
         
     }

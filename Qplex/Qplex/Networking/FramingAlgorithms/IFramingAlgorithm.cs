@@ -1,4 +1,4 @@
-﻿namespace Qplex.FramingAlgorithms
+﻿namespace Qplex.Networking.FramingAlgorithms
 {
     /// <summary>
     /// Framing algorithm frames buffers with a specific header

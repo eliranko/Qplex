@@ -1,4 +1,4 @@
-﻿using Qplex.Networking.Agents;
+﻿using Qplex.Networking.Parsers;
 
 namespace Qplex.Messages.Networking
 {
@@ -8,17 +8,17 @@ namespace Qplex.Messages.Networking
     public class NewConnectionMessage : Message
     {
         /// <summary>
-        /// Network agent
+        /// Network parser
         /// </summary>
-        public IAgent Agent { get; }
+        public IParser Parser { get; }
 
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="agent">Agent</param>
-        public NewConnectionMessage(IAgent agent)
+        /// <param name="parser">Parser</param>
+        public NewConnectionMessage(IParser parser)
         {
-            Agent = agent;
+            Parser = parser;
         }
     }
 }

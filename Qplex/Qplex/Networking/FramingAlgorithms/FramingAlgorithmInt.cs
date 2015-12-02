@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Linq;
 
-namespace Qplex.FramingAlgorithms
+namespace Qplex.Networking.FramingAlgorithms
 {
     /// <summary>
     /// Integer framing algorithm

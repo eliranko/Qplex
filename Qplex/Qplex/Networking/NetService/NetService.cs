@@ -37,7 +37,7 @@ namespace Qplex.Networking.NetService
         /// </summary>
         public void BroadcastToProtocols(Message message)
         {
-            ServiceToProtocolChannel.Broadcast(message, BroadcasterGuid);
+            ServiceToProtocolChannel.Broadcast(message, TypeGuid);
         }
     }
 

@@ -91,7 +91,7 @@ namespace Qplex.Networking.NetService
         {
             Log(LogLevel.Debug, "Handling new connection...");
             var protocol = new TProtocol();
-            protocol.SetAgent(message.Agent);
+            protocol.SetParser(message.Parser);
             AddProtocol(protocol);
         }
 

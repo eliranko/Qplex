@@ -1,6 +1,5 @@
 ﻿using System;
 using NLog;
-using NLog.Fluent;
 
 namespace Qplex
 {

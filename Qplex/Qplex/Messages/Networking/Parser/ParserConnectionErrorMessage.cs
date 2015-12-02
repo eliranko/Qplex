@@ -5,5 +5,13 @@
     /// </summary>
     public class ParserConnectionErrorMessage : Message
     {
+        /// <summary>
+        /// To string
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return "ParserConnectionErrorMessage";
+        }
     }
 }

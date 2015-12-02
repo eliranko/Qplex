@@ -14,41 +14,61 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Type guid
         /// </summary>
-        public Guid BroadcasterGuid { get; }
+        public Guid TypeGuid { get; }
+
+        /// <summary>
+        /// Broadcaster's name
+        /// </summary>
+        public string Name { get; }
 
         /// <summary>
         /// Channels list
         /// </summary>
-        private readonly IList<InternalChannel> _channelsList;
+        private readonly IList<IInternalChannel> _channelsList;
 
         /// <summary>
         /// Ctor
         /// </summary>
         public Broadcaster()
         {
-            Logger = LogManager.GetLogger(GetType().Name);
-            _channelsList = new List<InternalChannel>();
-            BroadcasterGuid = GetType().GUID;
+            _channelsList = new List<IInternalChannel>();
+
+            var myType = GetType();
+            Name = myType.Name;
+            Logger = LogManager.GetLogger(myType.Name);
+            TypeGuid = myType.GUID;
+        }
+
+        /// <summary>
+        /// Get the subscribed internal channels
+        /// </summary>
+        public IEnumerable<IInternalChannel> GetInternalChannels()
+        {
+            return _channelsList;
         }
 
         /// <summary>
         /// Subscribe to channel
         /// </summary>
         /// <param name="internalChannel">Channel</param>
-        public void SubscribeToChannel(InternalChannel internalChannel)
+        /// <returns>True on successfull subscription, false otherwise.</returns>
+        public bool SubscribeToChannel(InternalChannel internalChannel)
         {
             _channelsList.Add(internalChannel);
-            internalChannel.Subscribe(this);
+            return internalChannel.Subscribe(this);
         }
 
         /// <summary>
         /// Unsubscribe from channel
         /// </summary>
         /// <param name="internalChannel">Channel</param>
-        public void UnsubscribeFromChannel(InternalChannel internalChannel)
+        /// <returns>True on successfull unsubscription, false otherwise.</returns>
+        public bool UnsubscribeFromChannel(InternalChannel internalChannel)
         {
-            _channelsList.Remove(internalChannel); // TODO: Test if works
-            internalChannel.Unsubscribe(this);
+            if (!_channelsList.Remove(internalChannel))
+                Log(LogLevel.Warn, $"Error removing channel {internalChannel.Name} from channel's list");
+
+            return internalChannel.Unsubscribe(this);
         }
 
         /// <summary>
@@ -59,8 +79,8 @@ namespace Qplex.Communication.Handlers
         {
             foreach (var channel in _channelsList)
             {
-                Log(LogLevel.Trace, $"Broadcast message:{message.GetType().Name} to channel:{channel.Name}");
-                channel.Broadcast(message, BroadcasterGuid);
+                Log(LogLevel.Trace, $"Broadcast message:{message.Name} to channel:{channel.Name}");
+                channel.Broadcast(message, TypeGuid);
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace Qplex.FramingAlgorithms
+﻿namespace Qplex.Networking.FramingAlgorithms
 {
     /// <summary>
     /// Frame contians buffer with metadata

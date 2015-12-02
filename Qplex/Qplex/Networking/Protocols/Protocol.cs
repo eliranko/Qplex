@@ -1,11 +1,12 @@
-﻿using NLog;
+﻿using System.Linq;
+using NLog;
 using Qplex.Attributes;
 using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
-using Qplex.Messages.Networking.Agent;
-using Qplex.Networking.Agents;
+using Qplex.Messages.Networking.Parser;
+using Qplex.Networking.Parsers;
 
 namespace Qplex.Networking.Protocols
 {
@@ -18,46 +19,47 @@ namespace Qplex.Networking.Protocols
         where TIterator : IMessagesIterator, new()
     {
         /// <summary>
-        /// Network agent
+        /// Network parser
         /// </summary>
-        private IAgent _agent;
+        private IParser _parser;
 
         /// <summary>
         /// Protocol to agent channel
         /// </summary>
-        private readonly InternalChannel _protocolToAgentChannel;
+        private readonly InternalChannel _protocolToParserChannel;
 
         /// <summary>
         /// Ctor
         /// </summary>
         public Protocol()
         {
-            _protocolToAgentChannel = new InternalChannel(
-                $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToAgentChannel");
-            SubscribeToChannel(_protocolToAgentChannel);
+            _protocolToParserChannel = new InternalChannel(
+                $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToParserChannel");
+            SubscribeToChannel(_protocolToParserChannel);
         }
 
         /// <summary>
         /// Ctor
         /// </summary>
-        public Protocol(IAgent agent)
+        public Protocol(IParser parser)
         {
-            _agent = agent;
-            _protocolToAgentChannel = new InternalChannel(
-                $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToAgentChannel");
-            SubscribeToChannel(_protocolToAgentChannel);
-            _agent.SubscribeToChannel(_protocolToAgentChannel);
+            _parser = parser;
+            _protocolToParserChannel = new InternalChannel(
+                $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToParserChannel");
+            SubscribeToChannel(_protocolToParserChannel);
+            _parser.SubscribeToChannel(_protocolToParserChannel);
         }
 
         /// <summary>
-        /// Set agent
+        /// Set parser
         /// </summary>
-        public void SetAgent(IAgent agent)
+        /// <param name="parser">Network parser</param>
+        public void SetParser(IParser parser)
         {
-            Log(LogLevel.Debug, "Setting new agent");
-            _agent?.UnsubscribeFromChannel(_protocolToAgentChannel);
-            _agent = agent;
-            _agent.SubscribeToChannel(_protocolToAgentChannel);
+            Log(LogLevel.Trace, "Setting new parser");
+            _parser?.UnsubscribeFromChannel(_protocolToParserChannel);
+            _parser = parser;
+            _parser.SubscribeToChannel(_protocolToParserChannel);
         }
 
         /// <summary>
@@ -66,13 +68,13 @@ namespace Qplex.Networking.Protocols
         /// <returns>Operation status</returns>
         public override bool Start()
         {
-            if (_agent.Start() && base.Start())
+            if (_parser.Start() && base.Start())
             {
-                Log(LogLevel.Trace, "Protocol started successfully");
+                Log(LogLevel.Trace, $"Protocol: {Name} started successfully");
                 return true;
             }
 
-            Log(LogLevel.Fatal, "Protocol failed to start");
+            Log(LogLevel.Fatal, $"Protocol: {Name} failed to start");
             return false;
         }
 
@@ -81,9 +83,9 @@ namespace Qplex.Networking.Protocols
         /// </summary>
         public override void Stop()
         {
-            _agent.Stop();
+            _parser.Stop();
             base.Stop();
-            Log(LogLevel.Trace, "Protcol stopped successfully");
+            Log(LogLevel.Debug, $"Protcol: {Name} stopped successfully");
         }
 
         /// <summary>
@@ -92,9 +94,11 @@ namespace Qplex.Networking.Protocols
         /// <param name="message">Message</param>
         public void Send(Message message)
         {
-            Log(LogLevel.Trace, "Sending message throught agent");
-            _agent.Send(message);
+            Log(LogLevel.Trace, $"Sending message: {message.Name}");
+            _parser.Send(message);
         }
+
+        #region Message Handlers
 
         /// <summary>
         /// Handle new incoming message
@@ -102,8 +106,31 @@ namespace Qplex.Networking.Protocols
         [MessageHandler]
         public void HandleNewIncomingMessage(NewIncomingMessage message)
         {
-            TunnelMessage(message.Message, Broadcast);
+            Log(LogLevel.Trace, $"Tunneling {message}");
+            TunnelMessage(message, BroadcastToNetService);
         }
+
+        /// <summary>
+        /// Handle connection socket error message
+        /// </summary>
+        [MessageHandler]
+        public void HandleConnectionSocketErrorMessage(ParserConnectionErrorMessage message)
+        {
+            Log(LogLevel.Trace, $"Handling {message}");
+            _parser.RetrieveConnection();
+        }
+
+        #endregion
+
+        #region Helpers
+
+        private void BroadcastToNetService(Message message)
+        {
+            foreach (var channel in GetInternalChannels().Where(channel => !channel.Equals(_protocolToParserChannel)))
+                channel.Broadcast(message, TypeGuid);
+        }
+
+        #endregion
     }
 
     /// <summary>
@@ -121,9 +148,9 @@ namespace Qplex.Networking.Protocols
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="agent">Agent</param>
-        public Protocol(IAgent agent)
-            : base(agent)
+        /// <param name="parser">Parser</param>
+        public Protocol(IParser parser)
+            : base(parser)
         {
         }
     }

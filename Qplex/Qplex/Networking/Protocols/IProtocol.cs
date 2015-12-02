@@ -1,8 +1,8 @@
 ﻿using Qplex.Attributes;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
-using Qplex.Messages.Networking.Agent;
-using Qplex.Networking.Agents;
+using Qplex.Messages.Networking.Parser;
+using Qplex.Networking.Parsers;
 
 namespace Qplex.Networking.Protocols
 {
@@ -13,10 +13,10 @@ namespace Qplex.Networking.Protocols
     public interface IProtocol : ICommunicator
     {
         /// <summary>
-        /// Set agent
+        /// Set parser
         /// </summary>
-        /// <param name="agent">Network agent</param>
-        void SetAgent(IAgent agent);
+        /// <param name="parser">Network parser</param>
+        void SetParser(IParser parser);
 
         /// <summary>
         /// Send message
@@ -28,5 +28,11 @@ namespace Qplex.Networking.Protocols
         /// </summary>
         [MessageHandler]
         void HandleNewIncomingMessage(NewIncomingMessage message);
+
+        /// <summary>
+        /// Handle connection socket error message
+        /// </summary>
+        [MessageHandler]
+        void HandleConnectionSocketErrorMessage(ParserConnectionErrorMessage message);
     }
 }

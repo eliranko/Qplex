@@ -18,7 +18,7 @@ namespace Qplex.Communication.Handlers
     public class Communicator<TIterator> : Broadcaster, ICommunicator
         where TIterator : IMessagesIterator, new()
     {
-        private const int InitMessageTimeout = 5000;
+        private const int InitMessageTimeout = 15000; //TODO: Extract to configuration
 
         private readonly Dispatcher<TIterator> _dispatcher;
         private IList<Type> _initMessages;
@@ -29,7 +29,7 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         public Communicator()
         {
-            _dispatcher = new Dispatcher<TIterator>($"{GetType().Name}Dispatcher");
+            _dispatcher = new Dispatcher<TIterator>($"{Name}Dispatcher");
             _initMessages = new List<Type>();
             _waitingList = new List<Message>();
             LoadMessageHandlers();
@@ -41,6 +41,7 @@ namespace Qplex.Communication.Handlers
         /// <returns></returns>
         public virtual bool Start()
         {
+            Log(LogLevel.Trace, $"Starting communicator: {Name}");
             return _dispatcher.Start();
         }
 
@@ -49,7 +50,7 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         public virtual void Stop()
         {
-            Log(LogLevel.Debug, "Stopping...");
+            Log(LogLevel.Debug, $"Stopping communicator: {Name}");
             _dispatcher.Stop();
         }
 
@@ -59,12 +60,15 @@ namespace Qplex.Communication.Handlers
         /// <param name="message">New received message</param>
         public void NewMessage(Message message)
         {
+            //Dispatch message if init queue is empty
             if (!_initMessages.Any())
                 _dispatcher.Dispatch(message);
 
+            //Add message to wait list, until the init messages are handled
             else if (_initMessages.Any() && !_initMessages.Contains(message.GetType()))
                 _waitingList.Add(message);
 
+            //Dispatch init message
             else
             {
                 var messageType = message.GetType();
@@ -72,8 +76,10 @@ namespace Qplex.Communication.Handlers
                 _initMessages.Remove(messageType);
                 _dispatcher.Dispatch(message);
 
-                if(!_initMessages.Any())
-                    _waitingList.ForEach(_dispatcher.Dispatch);
+                if (_initMessages.Any()) return;
+                //If last init message, dispatch the waiting list
+                _waitingList.ForEach(_dispatcher.Dispatch);
+                _waitingList.Clear();
             }
         }
 
@@ -83,7 +89,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="message">Message</param>
         public void Notify(Message message)
         {
-            Log(LogLevel.Debug, $"Notifing message:{message.GetType().Name}");
+            Log(LogLevel.Trace, $"Notifing message: {message.Name}");
             NewMessage(message);
         }
 
@@ -94,7 +100,7 @@ namespace Qplex.Communication.Handlers
         /// <param name="milliseconds">Delay time</param>
         public void DelayedNotify(Message message, int milliseconds)
         {
-            Log(LogLevel.Debug, $"Delayed Notify of {milliseconds} of message:{message.GetType().Name}");
+            Log(LogLevel.Debug, $"Delayed Notify of {milliseconds} of message:{message.Name}");
             Task.Factory.StartNew(() =>
             {
                 Thread.Sleep(milliseconds);
@@ -124,11 +130,14 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         public void TunnelMessage(Message message, Action<Message> action)
         {
+            Log(LogLevel.Trace, $"Tunneling message: {message.Name}...");
             if(_dispatcher.IsHandled(message.GetType()))
             {
+                Log(LogLevel.Trace, $"Handling tunneled message: {message.Name}");
                 NewMessage(message);
                 return;
             }
+            Log(LogLevel.Trace, $"Invoking given action on message: {message.Name}");
             Task.Factory.StartNew(() => action.Invoke(message));
         }
 
@@ -187,9 +196,12 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         /// <param name="methodInfo">Method</param>
         /// <returns>Thread name</returns>
-        private string GetAttributeThreadName(MethodInfo methodInfo)
+        private string GetAttributeThreadName(MemberInfo methodInfo)
         {
-// ReSharper disable once PossibleNullReferenceException
+            var messageHandler = methodInfo.GetCustomAttributes(typeof (MessageHandler)).First() as MessageHandler;
+            if (messageHandler == null)
+                Qplex.Instance.CloseApplication($"Fatal error getting thread handler name of method: {methodInfo.Name}");
+
             return (methodInfo.GetCustomAttributes(typeof(MessageHandler)).First() as MessageHandler).Name;
         }
 

@@ -4,15 +4,15 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters;
 using System.Runtime.Serialization.Formatters.Binary;
-using Qplex.FramingAlgorithms;
 using Qplex.Messages;
+using Qplex.Networking.FramingAlgorithms;
 
-namespace Qplex.MessageFactories
+namespace Qplex.Networking.MessageFactories
 {
     /// <summary>
     /// Message factory which serializes and deserialize Message object as is
     /// </summary>
-    public class MessageObjectMessageFactory : IMessageFactory
+    public class MessageFactory : IMessageFactory
     {
         /// <summary>
         /// Serialize message to frame

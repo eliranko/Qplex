@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\MessageHandler.cs" />
+    <Compile Include="Communication\Channels\IInternalChannel.cs" />
     <Compile Include="Communication\Channels\InternalChannel.cs" />
     <Compile Include="Communication\Handlers\Broadcaster.cs" />
     <Compile Include="Communication\Handlers\Communicator.cs" />
@@ -55,27 +56,24 @@
     <Compile Include="Communication\Handlers\IBroadcaster.cs" />
     <Compile Include="Communication\Handlers\ICommunicator.cs" />
     <Compile Include="Container.cs" />
-    <Compile Include="FramingAlgorithms\Frame.cs" />
-    <Compile Include="FramingAlgorithms\FramingAlgorithmInt.cs" />
-    <Compile Include="Layers\CommunicationLayer.cs" />
+    <Compile Include="Networking\FramingAlgorithms\Frame.cs" />
+    <Compile Include="Networking\FramingAlgorithms\FramingAlgorithmInt.cs" />
+    <Compile Include="Layers\NetworkLayer.cs" />
     <Compile Include="Layers\ILayer.cs" />
     <Compile Include="Layers\Layer.cs" />
     <Compile Include="LogWrapper.cs" />
-    <Compile Include="MessageFactories\IMessageFactory.cs" />
-    <Compile Include="MessageFactories\MessageObjectMessageFactory.cs" />
+    <Compile Include="Networking\MessageFactories\IMessageFactory.cs" />
+    <Compile Include="Networking\MessageFactories\MessageFactory.cs" />
     <Compile Include="Messages\Handlers\IMessagesIterator.cs" />
     <Compile Include="Messages\Handlers\QueueMessagesIterator.cs" />
     <Compile Include="Messages\Message.cs" />
-    <Compile Include="Messages\Networking\Agent\NewIncomingMessage.cs" />
     <Compile Include="Messages\Networking\Connection\ConnectionBufferReceivedMessage.cs" />
     <Compile Include="Messages\Networking\Connection\ConnectionSendStatusMessage.cs" />
     <Compile Include="Messages\Networking\NewConnectionMessage.cs" />
     <Compile Include="Messages\Networking\Parser\ParserConnectionErrorMessage.cs" />
-    <Compile Include="Messages\Networking\Parser\ParserUnframedBufferMessage.cs" />
-    <Compile Include="Networking\Agents\Agent.cs" />
-    <Compile Include="Networking\Agents\IAgent.cs" />
+    <Compile Include="Messages\Networking\Parser\NewIncomingMessage.cs" />
     <Compile Include="Networking\Connection\IConnection.cs" />
-    <Compile Include="FramingAlgorithms\IFramingAlgorithm.cs" />
+    <Compile Include="Networking\FramingAlgorithms\IFramingAlgorithm.cs" />
     <Compile Include="Networking\Listeners\IListener.cs" />
     <Compile Include="Networking\Listeners\Listener.cs" />
     <Compile Include="Networking\NetService\ClientNetService.cs" />
