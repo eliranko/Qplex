@@ -30,14 +30,14 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         /// <param name="internalChannel">Channel</param>
         /// <returns>True on successfull subscription, false otherwise.</returns>
-        bool SubscribeToChannel(InternalChannel internalChannel);
+        bool SubscribeToChannel(IInternalChannel internalChannel);
 
         /// <summary>
         /// Unsubscribe from channel
         /// </summary>
         /// <param name="internalChannel">Channel</param>
         /// <returns>True on successfull usubscription, false otherwise.</returns>
-        bool UnsubscribeFromChannel(InternalChannel internalChannel);
+        bool UnsubscribeFromChannel(IInternalChannel internalChannel);
 
         /// <summary>
         /// Broadcast message to channels

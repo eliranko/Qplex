@@ -57,6 +57,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="CommunicationTests\ChannelsTests\InternalChannelTests.cs" />
+    <Compile Include="CommunicationTests\HandlersTests\BroadcasterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

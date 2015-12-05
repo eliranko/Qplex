@@ -24,14 +24,14 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Channels list
         /// </summary>
-        private readonly IList<IInternalChannel> _channelsList;
+        private readonly HashSet<IInternalChannel> _channelsList;
 
         /// <summary>
         /// Ctor
         /// </summary>
         public Broadcaster()
         {
-            _channelsList = new List<IInternalChannel>();
+            _channelsList = new HashSet<IInternalChannel>();
 
             var myType = GetType();
             Name = myType.Name;
@@ -52,10 +52,23 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         /// <param name="internalChannel">Channel</param>
         /// <returns>True on successfull subscription, false otherwise.</returns>
-        public bool SubscribeToChannel(InternalChannel internalChannel)
+        public bool SubscribeToChannel(IInternalChannel internalChannel)
         {
-            _channelsList.Add(internalChannel);
-            return internalChannel.Subscribe(this);
+            if (internalChannel == null)
+            {
+                Log(LogLevel.Error, "Received empty internal channel to subscribe to");
+                return false;
+            }
+
+            if (!_channelsList.Add(internalChannel))
+            {
+                Log(LogLevel.Error, $"Error adding channel: {internalChannel.Name} to broadcaster's list of channels");
+                return false;
+            }
+
+            if (internalChannel.Subscribe(this)) return true;
+            Log(LogLevel.Error, $"Error subscribing broadcaster to channel: {internalChannel.Name}");
+            return false;
         }
 
         /// <summary>
@@ -63,12 +76,23 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         /// <param name="internalChannel">Channel</param>
         /// <returns>True on successfull unsubscription, false otherwise.</returns>
-        public bool UnsubscribeFromChannel(InternalChannel internalChannel)
+        public bool UnsubscribeFromChannel(IInternalChannel internalChannel)
         {
-            if (!_channelsList.Remove(internalChannel))
-                Log(LogLevel.Warn, $"Error removing channel {internalChannel.Name} from channel's list");
+            if (internalChannel == null)
+            {
+                Log(LogLevel.Error, "Received empty internal channel to unsubscribe from");
+                return false;
+            }
 
-            return internalChannel.Unsubscribe(this);
+            if (!_channelsList.Remove(internalChannel))
+            {
+                Log(LogLevel.Error, $"Error removing channel: {internalChannel.Name} from broadcaster's list of channels");
+                return false;
+            }
+
+            if (internalChannel.Unsubscribe(this)) return true;
+            Log(LogLevel.Error, $"Error unsubscribing broadcaster from channel: {internalChannel.Name}");
+            return false;
         }
 
         /// <summary>
@@ -96,9 +120,8 @@ namespace Qplex.Communication.Handlers
         }
 
         /// <summary>
-        /// 
+        /// GetHashCode
         /// </summary>
-        /// <returns></returns>
         public override int GetHashCode()
         {
 // ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
