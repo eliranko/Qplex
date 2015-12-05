@@ -83,5 +83,26 @@ namespace Qplex.Communication.Handlers
                 channel.Broadcast(message, TypeGuid);
             }
         }
+
+        /// <summary>
+        /// Equals
+        /// </summary>
+        public override bool Equals(object obj)
+        {
+            var broadcaster = obj as Broadcaster;
+            if (broadcaster == null) return false;
+
+            return Name == broadcaster.Name && TypeGuid == broadcaster.TypeGuid;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+// ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
+            return base.GetHashCode();
+        }
     }
 }

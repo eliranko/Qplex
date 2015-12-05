@@ -10,12 +10,12 @@ namespace Qplex.Communication.Channels
     /// <summary>
     /// Channel is a tune which passes messages to all of its subscribers (publis/subscribe).
     /// </summary>
-    public class InternalChannel : LogWrapper, IInternalChannel
+    public sealed class InternalChannel : LogWrapper, IInternalChannel
     {
         /// <summary>
         /// Subscribers
         /// </summary>
-        private readonly IList<IBroadcaster> _subscribersList;
+        private readonly BroadcasterContainer _subscribersList;
 
         /// <summary>
         /// Channel's name
@@ -29,7 +29,7 @@ namespace Qplex.Communication.Channels
         {
             Name = GetType().Name;
             Logger = LogManager.GetLogger(Name);
-            _subscribersList = new List<IBroadcaster>();
+            _subscribersList = new BroadcasterContainer();
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Qplex.Communication.Channels
         {
             Name = name;
             Logger = LogManager.GetLogger(name);
-            _subscribersList = new List<IBroadcaster>();
+            _subscribersList = new BroadcasterContainer();
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Qplex.Communication.Channels
         /// </summary>
         /// <param name="broadcaster">Subscriber</param>
         /// <returns>True on successfull subscription, false otherwise.</returns>
-        public bool Subscribe(Broadcaster broadcaster)
+        public bool Subscribe(IBroadcaster broadcaster)
         {
             if (broadcaster == null)
             {
@@ -56,9 +56,12 @@ namespace Qplex.Communication.Channels
                 return false;
             }
 
-            Log(LogLevel.Trace, $"New subscriber {broadcaster.GetType().Name}");
-            _subscribersList.Add(broadcaster);
-            return true;
+            var status = _subscribersList.Add(broadcaster);
+            if (status)
+                Log(LogLevel.Trace, $"New subscriber: {broadcaster.Name} from channel");
+            else
+                Log(LogLevel.Warn, $"Failed Subscribing {broadcaster.Name} from channel");
+            return status;
         }
 
         /// <summary>
@@ -66,7 +69,7 @@ namespace Qplex.Communication.Channels
         /// </summary>
         /// <param name="broadcaster">Subscriber</param>
         /// <returns>True on successfull unsubscription, false otherwise.</returns>
-        public bool Unsubscribe(Broadcaster broadcaster)
+        public bool Unsubscribe(IBroadcaster broadcaster)
         {
             if (broadcaster == null)
             {
@@ -76,10 +79,10 @@ namespace Qplex.Communication.Channels
 
             var status = _subscribersList.Remove(broadcaster);
             if(status)
-                Log(LogLevel.Trace, $"Unsubscriber {broadcaster.GetType().Name}");
+                Log(LogLevel.Trace, $"Unsubscribed {broadcaster.Name} from channel");
             else
-                Log(LogLevel.Warn, $"Failed unsubscribing {broadcaster.GetType().Name}");
-            return _subscribersList.Remove(broadcaster);
+                Log(LogLevel.Warn, $"Failed unsubscribing {broadcaster.Name} from channel");
+            return status;
         }
 
         /// <summary>
@@ -89,12 +92,16 @@ namespace Qplex.Communication.Channels
         /// <param name="callerGuid">Caller guid</param>
         public void Broadcast(Message message, Guid callerGuid)
         {
-            foreach (var subscriber in _subscribersList.Where(subscriber =>
-                subscriber.TypeGuid != callerGuid &&
-                subscriber.GetType().GetInterfaces().Contains(typeof(ICommunicator))))
+            if (message == null)
+            {
+                Log(LogLevel.Error, "Received null message to broadcast");
+                return;
+            }
+
+            foreach (var subscriber in _subscribersList.GetCommunicators(callerGuid))
             {
                 Log(LogLevel.Debug, $"Broadcasted {message.Name} to {subscriber.Name}");
-                ((ICommunicator)subscriber).NewMessage(message);
+                subscriber.NewMessage(message);
             }
         }
 
