@@ -5,7 +5,6 @@ using Moq;
 using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
-using Qplex.Messages.Networking.Parser;
 
 namespace QplexTests.CommunicationTests.HandlersTests
 {
@@ -14,12 +13,14 @@ namespace QplexTests.CommunicationTests.HandlersTests
     {
         private Mock<IInternalChannel> _internalChannel;
         private IBroadcaster _broadcaster;
+        private Message _message;
 
         [TestInitialize]
         public void TestInit()
         {
             _broadcaster = new Broadcaster();
             _internalChannel = new Mock<IInternalChannel>();
+            _message = new MockMessage();
             _internalChannel.Setup(channel => channel.Subscribe(It.IsAny<IBroadcaster>())).Returns(true);
             _internalChannel.Setup(channel => channel.Unsubscribe(It.IsAny<IBroadcaster>())).Returns(true);
         }
@@ -92,14 +93,13 @@ namespace QplexTests.CommunicationTests.HandlersTests
         [TestMethod]
         public void BroadcastBroadcastsToChannel()
         {
-            var message = new ParserConnectionErrorMessage();
             _internalChannel.Setup(
                 channel =>
-                    channel.Broadcast(It.Is<ParserConnectionErrorMessage>(message1 => message1 == message),
+                    channel.Broadcast(It.Is<MockMessage>(message1 => message1 == _message),
                         It.Is<Guid>(guid => guid == _broadcaster.TypeGuid))).Verifiable();
 
             _broadcaster.SubscribeToChannel(_internalChannel.Object);
-            _broadcaster.Broadcast(message);
+            _broadcaster.Broadcast(_message);
             _internalChannel.Verify();
         }
 
@@ -111,7 +111,7 @@ namespace QplexTests.CommunicationTests.HandlersTests
 
             _broadcaster.SubscribeToChannel(_internalChannel.Object);
             _broadcaster.UnsubscribeFromChannel(_internalChannel.Object);
-            _broadcaster.Broadcast(new ParserConnectionErrorMessage());
+            _broadcaster.Broadcast(new MockMessage());
         }
 
         #endregion

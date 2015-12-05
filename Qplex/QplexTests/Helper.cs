@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using Qplex.Messages;
 
 namespace QplexTests
 {
@@ -21,5 +22,10 @@ namespace QplexTests
             var fieldInfo = type.GetField(fieldName, BindFlags);
             fieldInfo?.SetValue(instance, newValue);
         }
+    }
+
+    public class MockMessage : Message
+    {
+        
     }
 }

@@ -11,7 +11,7 @@ namespace Qplex.Communication.Handlers
     /// <summary>
     /// Thread which handles messages and invokes their handlers when they arrive.
     /// </summary>
-    public class DispatcherThread : LogWrapper
+    public class DispatcherThread : LogWrapper, IDispatcherThread
     {
         /// <summary>
         /// Thread
@@ -36,7 +36,7 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Thread's name
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         /// Ctor

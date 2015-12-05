@@ -5,20 +5,24 @@ using Qplex.Attributes;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
-using Qplex.Messages.Networking.Parser;
 
 namespace QplexTests.CommunicationTests.HandlersTests
 {
+    class MockMessage2 : Message
+    {
+         
+    }
+
     class SomeCommunicator : Communicator<QueueMessagesIterator>
     {
         [MessageHandler]
-        public void SomeHandler(ParserConnectionErrorMessage message)
+        public void SomeHandler(MockMessage message)
         {
 
         }
 
         [MessageHandler]
-        public void AnotherHandler(NewIncomingMessage message)
+        public void AnotherHandler(MockMessage2 message)
         {
 
         }
@@ -39,7 +43,7 @@ namespace QplexTests.CommunicationTests.HandlersTests
         [TestInitialize]
         public void TestInit()
         {
-            _message = new ParserConnectionErrorMessage();
+            _message = new MockMessage();
             _dispatcher = new Mock<IDispatcher>();
             _communicator = new Communicator<QueueMessagesIterator>();
             OverrideDisaptcher(_communicator);
@@ -156,7 +160,7 @@ namespace QplexTests.CommunicationTests.HandlersTests
             _dispatcher.Setup(dispatcher => dispatcher.Dispatch(It.IsAny<Message>()))
                 .Throws(new Exception("Dispatch should not be called"));
 
-            _communicator.SetInitMessages(typeof(NewIncomingMessage));
+            _communicator.SetInitMessages(typeof(MockMessage2));
             _communicator.NewMessage(_message);
         }
 
@@ -164,13 +168,13 @@ namespace QplexTests.CommunicationTests.HandlersTests
         public void DispatcherCalledWhenNoInitMessagesAreLeft()
         {
             _dispatcher.Setup(dispatcher => dispatcher.Dispatch(It.IsAny<Message>())).Verifiable();
-            _communicator.SetInitMessages(typeof(NewIncomingMessage));
+            _communicator.SetInitMessages(typeof(MockMessage2));
             _communicator.NewMessage(_message);
-            _communicator.NewMessage(new NewIncomingMessage(_message));
+            _communicator.NewMessage(new MockMessage2());
 
-            _dispatcher.Verify(dispatcher => dispatcher.Dispatch(It.IsAny<NewIncomingMessage>()), Times.Once);
+            _dispatcher.Verify(dispatcher => dispatcher.Dispatch(It.IsAny<MockMessage2>()), Times.Once);
             _dispatcher.Verify(
-                dispatcher => dispatcher.Dispatch(It.Is<ParserConnectionErrorMessage>(message => message == _message)),
+                dispatcher => dispatcher.Dispatch(It.Is<MockMessage>(message => message == _message)),
                 Times.Once);
         }
 
@@ -178,10 +182,10 @@ namespace QplexTests.CommunicationTests.HandlersTests
         public void DispatcherNotRedundantlyCalledWhenNotInitMessagesLeft()
         {
             _dispatcher.Setup(dispatcher => dispatcher.Dispatch(It.IsAny<Message>())).Verifiable();
-            _communicator.SetInitMessages(typeof(NewIncomingMessage));
-            _communicator.SetInitMessages(typeof(ParserConnectionErrorMessage));
+            _communicator.SetInitMessages(typeof(MockMessage2));
+            _communicator.SetInitMessages(typeof(MockMessage));
             _communicator.NewMessage(_message);
-            _communicator.NewMessage(new NewIncomingMessage(_message));
+            _communicator.NewMessage(new MockMessage2());
 
             _dispatcher.Verify(dispatcher => dispatcher.Dispatch(It.IsAny<Message>()), Times.Exactly(2));
         }
@@ -191,8 +195,8 @@ namespace QplexTests.CommunicationTests.HandlersTests
         public void NotifyEmptiesInitMessagesStack()
         {
             _dispatcher.Setup(dispatcher => dispatcher.Dispatch(It.IsAny<Message>())).Verifiable();
-            _communicator.SetInitMessages(typeof(NewIncomingMessage));
-            _communicator.Notify(new NewIncomingMessage(_message));
+            _communicator.SetInitMessages(typeof(MockMessage2));
+            _communicator.Notify(new MockMessage2());
             _communicator.NewMessage(_message);
 
             _dispatcher.Verify(dispatcher => dispatcher.Dispatch(It.IsAny<Message>()), Times.Exactly(2));
@@ -204,7 +208,7 @@ namespace QplexTests.CommunicationTests.HandlersTests
         private void VerifiableDispatch()
         {
             _dispatcher.Setup(
-                dispatcher => dispatcher.Dispatch(It.Is<ParserConnectionErrorMessage>(message1 => message1 == _message)))
+                dispatcher => dispatcher.Dispatch(It.Is<MockMessage>(message1 => message1 == _message)))
                 .Verifiable();
         }
 

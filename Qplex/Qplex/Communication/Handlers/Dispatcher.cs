@@ -17,7 +17,7 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Threads list
         /// </summary>
-        private readonly List<DispatcherThread> _threadsList;
+        private readonly List<IDispatcherThread> _threadsList;
 
         /// <summary>
         /// Dispatcher's name
@@ -31,7 +31,7 @@ namespace Qplex.Communication.Handlers
         {
             _name = name;
             Logger = LogManager.GetLogger(_name);
-            _threadsList = new List<DispatcherThread>();
+            _threadsList = new List<IDispatcherThread>();
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         /// <param name="messageType">Message type to handle</param>
         /// <returns>DisptacherThread if exists, null otherwise.</returns>
-        private DispatcherThread GetThread(Type messageType)
+        private IDispatcherThread GetThread(Type messageType)
         {
             return _threadsList.FirstOrDefault(thread => thread.GetHandledMessages().Contains(messageType));
         }
@@ -109,7 +109,7 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         /// <param name="name">Thread's name</param>
         /// <returns>DisptacherThread if exists, null otherwise.</returns>
-        private DispatcherThread GetThread(string name)
+        private IDispatcherThread GetThread(string name)
         {
             return _threadsList.FirstOrDefault(thread => thread.Name == name);
         }

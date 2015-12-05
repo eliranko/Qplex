@@ -5,7 +5,6 @@ using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
-using Qplex.Messages.Networking.Parser;
 
 namespace QplexTests.CommunicationTests.ChannelsTests
 {
@@ -14,12 +13,14 @@ namespace QplexTests.CommunicationTests.ChannelsTests
     {
         private IInternalChannel _internalChannel;
         private ICommunicator _communicator;
+        private Message _message;
 
         [TestInitialize]
         public void TestInit()
         {
             _internalChannel = new InternalChannel();
             _communicator = new Communicator<QueueMessagesIterator>();
+            _message = new MockMessage();
         }
 
         #region Subscribe
@@ -94,7 +95,7 @@ namespace QplexTests.CommunicationTests.ChannelsTests
             var broadcaster = new Mock<ICommunicator>();
             broadcaster.Setup(communicator => communicator.NewMessage(It.IsAny<Message>())).Throws(new Exception("Broadcasted to self"));
             _internalChannel.Subscribe(broadcaster.Object);
-            _internalChannel.Broadcast(new ParserConnectionErrorMessage(), broadcaster.Object.TypeGuid);
+            _internalChannel.Broadcast(_message, broadcaster.Object.TypeGuid);
         }
 
         [TestMethod]
@@ -103,11 +104,11 @@ namespace QplexTests.CommunicationTests.ChannelsTests
             var communicator = new Mock<ICommunicator>();
             communicator.Setup(
                 communicator1 =>
-                    communicator1.NewMessage(It.IsAny<ParserConnectionErrorMessage>())).Verifiable();
+                    communicator1.NewMessage(It.IsAny<MockMessage>())).Verifiable();
 
             _internalChannel.Subscribe(_communicator);
             _internalChannel.Subscribe(communicator.Object);
-            _internalChannel.Broadcast(new ParserConnectionErrorMessage(), _communicator.TypeGuid);
+            _internalChannel.Broadcast(_message, _communicator.TypeGuid);
 
             communicator.Verify();
         }
