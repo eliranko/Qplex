@@ -46,6 +46,7 @@ namespace Qplex.Networking.Parsers
             _connection.HeaderSize = framingAlgorithm.HeaderSize;
             _messageFactory = messageFactory;
             _framingAlgorithm = framingAlgorithm;
+
             var channel = new InternalChannel(
                 $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToConnectionChannel");
             SubscribeToChannel(channel);
@@ -119,6 +120,16 @@ namespace Qplex.Networking.Parsers
             if (message.ConnectionSocketStatus == ConnectionSocketStatus.Success) return;
             Log(LogLevel.Error, "Connection socket has failed, notifying agent...");
             Broadcast(new ParserConnectionErrorMessage());
+        }
+
+        /// <summary>
+        /// To string
+        /// </summary>
+        /// <returns>String representation of this object</returns>
+        public override string ToString()
+        {
+            return
+                $"Parser with connection: {_connection.GetType().Name}, Message factory: {_messageFactory.GetType().Name} and Framing algorithm: {_framingAlgorithm.GetType().Name}";
         }
     }
 

@@ -56,7 +56,7 @@ namespace Qplex.Networking.Protocols
         /// <param name="parser">Network parser</param>
         public void SetParser(IParser parser)
         {
-            Log(LogLevel.Trace, "Setting new parser");
+            Log(LogLevel.Trace, $"Setting new parser: {parser}");
             _parser?.UnsubscribeFromChannel(_protocolToParserChannel);
             _parser = parser;
             _parser.SubscribeToChannel(_protocolToParserChannel);

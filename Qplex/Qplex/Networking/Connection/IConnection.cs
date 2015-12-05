@@ -16,7 +16,7 @@ namespace Qplex.Networking.Connection
         /// </summary>
         NullAddress,
         /// <summary>
-        /// Given portis invalid
+        /// Given port is invalid
         /// </summary>
         InvalidPort,
         /// <summary>
@@ -24,7 +24,7 @@ namespace Qplex.Networking.Connection
         /// </summary>
         SocketAlreadyConnected,
         /// <summary>
-        /// An error occurred when accessing the socket. See the Remarks section for more information. 
+        /// An error occurred when accessing the socket
         /// </summary>
         SocketError,
         /// <summary>

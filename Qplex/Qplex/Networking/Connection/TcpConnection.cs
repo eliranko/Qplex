@@ -73,7 +73,7 @@ namespace Qplex.Networking.Connection
         /// <returns>Operation status</returns>
         public ConnectionConnectStatus ConnectAndReceive()
         {
-            Log(LogLevel.Debug, $"Tcp client trying to connect to {_ip}:{_port}");
+            Log(LogLevel.Trace, $"Tcp client trying to connect to {_ip}:{_port}");
             if (_tcpClient.Connected)
             {
                 Log(LogLevel.Warn, "Tried to connect while tcp client is already connected");

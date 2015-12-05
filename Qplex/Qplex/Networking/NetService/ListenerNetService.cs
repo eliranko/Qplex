@@ -104,8 +104,8 @@ namespace Qplex.Networking.NetService
         private void AddProtocol(TProtocol protocol)
         {
             protocol.SubscribeToChannel(ServiceToProtocolChannel);
-            protocol.Start();
             _protocolsList.Add(protocol);
+            protocol.Start();
         }
 
         #endregion
