@@ -55,6 +55,7 @@
     <Compile Include="Communication\Handlers\DispatcherThread.cs" />
     <Compile Include="Communication\Handlers\IBroadcaster.cs" />
     <Compile Include="Communication\Handlers\ICommunicator.cs" />
+    <Compile Include="Communication\Handlers\IDispatcher.cs" />
     <Compile Include="Container.cs" />
     <Compile Include="Networking\FramingAlgorithms\Frame.cs" />
     <Compile Include="Networking\FramingAlgorithms\FramingAlgorithmInt.cs" />

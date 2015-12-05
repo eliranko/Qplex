@@ -58,6 +58,9 @@
   <ItemGroup>
     <Compile Include="CommunicationTests\ChannelsTests\InternalChannelTests.cs" />
     <Compile Include="CommunicationTests\HandlersTests\BroadcasterTests.cs" />
+    <Compile Include="CommunicationTests\HandlersTests\CommunicatorTests.cs" />
+    <Compile Include="CommunicationTests\HandlersTests\DispatcherTests.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

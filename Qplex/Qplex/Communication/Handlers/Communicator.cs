@@ -20,9 +20,9 @@ namespace Qplex.Communication.Handlers
     {
         private const int InitMessageTimeout = 15000; //TODO: Extract to configuration
 
-        private readonly Dispatcher<TIterator> _dispatcher;
-        private IList<Type> _initMessages;
+        private readonly IDispatcher _dispatcher;
         private readonly List<Message> _waitingList;
+        private IList<Type> _initMessages;
 
         /// <summary>
         /// Ctor
@@ -32,7 +32,6 @@ namespace Qplex.Communication.Handlers
             _dispatcher = new Dispatcher<TIterator>($"{Name}Dispatcher");
             _initMessages = new List<Type>();
             _waitingList = new List<Message>();
-            LoadMessageHandlers();
         }
 
         /// <summary>
@@ -41,6 +40,14 @@ namespace Qplex.Communication.Handlers
         /// <returns></returns>
         public virtual bool Start()
         {
+            Task.Factory.StartNew(() =>
+            {
+                Thread.Sleep(InitMessageTimeout);
+                if (_initMessages.Any())
+                    throw new TimeoutException("Timeout for initialization message has expired");
+            });
+            LoadMessageHandlers();
+
             Log(LogLevel.Trace, $"Starting communicator: {Name}");
             return _dispatcher.Start();
         }
@@ -116,13 +123,6 @@ namespace Qplex.Communication.Handlers
         {
             Log(LogLevel.Debug, $"Setting initial message: {string.Join(",", messages.Select(type => type.Name))}");
             _initMessages = messages.ToList();
-
-            Task.Factory.StartNew(() =>
-            {
-                Thread.Sleep(InitMessageTimeout);
-                if(_initMessages.Any())
-                    throw new TimeoutException("Timeout for initialization message has expired");
-            });
         }
 
         /// <summary>
@@ -202,6 +202,7 @@ namespace Qplex.Communication.Handlers
             if (messageHandler == null)
                 Qplex.Instance.CloseApplication($"Fatal error getting thread handler name of method: {methodInfo.Name}");
 
+// ReSharper disable once PossibleNullReferenceException
             return (methodInfo.GetCustomAttributes(typeof(MessageHandler)).First() as MessageHandler).Name;
         }
 

@@ -11,7 +11,7 @@ namespace Qplex.Communication.Handlers
     /// Dispatches messages between threads
     /// </summary>
     /// <typeparam name="TIterator">Message iterator</typeparam>
-    public class Dispatcher<TIterator> : LogWrapper
+    public class Dispatcher<TIterator> : LogWrapper, IDispatcher
         where TIterator : IMessagesIterator, new()
     {
         /// <summary>
@@ -27,11 +27,10 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="name">Dispatcher's name</param>
         public Dispatcher(string name)
         {
             _name = name;
-            Logger = LogManager.GetLogger(name);
+            Logger = LogManager.GetLogger(_name);
             _threadsList = new List<DispatcherThread>();
         }
 
