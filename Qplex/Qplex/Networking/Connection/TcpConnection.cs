@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using NLog;
 using Qplex.Communication.Handlers;
 using Qplex.Messages.Networking.Connection;
+using Qplex.Networking.Connection.Adapters;
 
 namespace Qplex.Networking.Connection
 {
@@ -22,7 +23,7 @@ namespace Qplex.Networking.Connection
         /// <summary>
         /// Tcp client
         /// </summary>
-        private readonly TcpClient _tcpClient;
+        private readonly ITcpClient _tcpClient;
 
         /// <summary>
         /// Ip
@@ -48,11 +49,11 @@ namespace Qplex.Networking.Connection
         /// Constructor used by listener
         /// </summary>
         /// <param name="tcpClient">Tcp client</param>
-        public TcpConnection(TcpClient tcpClient)
+        public TcpConnection(ITcpClient tcpClient)
         {
             _tcpClient = tcpClient;
-            _ip = ((IPEndPoint) tcpClient.Client.RemoteEndPoint).Address;
-            _port = ((IPEndPoint) tcpClient.Client.RemoteEndPoint).Port;
+            _ip = _tcpClient.Ip;
+            _port = _tcpClient.Port;
         }
 
         /// <summary>
@@ -64,7 +65,7 @@ namespace Qplex.Networking.Connection
         {
             _ip = ip;
             _port = port;
-            _tcpClient = new TcpClient();
+            _tcpClient = new TcpClientAdaptee();
         }
 
         /// <summary>
@@ -157,6 +158,11 @@ namespace Qplex.Networking.Connection
             {
                 Log(LogLevel.Error, $"ObjectDisposedException resulted when ended write on {_ip}:{_port}");
                 Broadcast(new ConnectionSendStatusMessage(ConnectionSocketStatus.ClientDisposed));
+            }
+            catch (InvalidOperationException)
+            {
+                Log(LogLevel.Error, $"InvalidOperationException resulted when ended write on {_ip}:{_port}");
+                Broadcast(new ConnectionSendStatusMessage(ConnectionSocketStatus.SocketClosed));
             }
         }
 

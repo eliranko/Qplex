@@ -5,6 +5,7 @@ using System.Threading;
 using NLog;
 using Qplex.Messages.Networking;
 using Qplex.Networking.Connection;
+using Qplex.Networking.Connection.Adapters;
 using Qplex.Networking.FramingAlgorithms;
 using Qplex.Networking.MessageFactories;
 using Qplex.Networking.Parsers;
@@ -90,7 +91,7 @@ namespace Qplex.Networking.Listeners
             // ReSharper disable once PossibleNullReferenceException
             var tcpClient = (asyncResult.AsyncState as TcpListener).EndAcceptTcpClient(asyncResult);
             Broadcast(new NewConnectionMessage(new Parser(
-                new TcpConnection(tcpClient), new T(), new TU())));
+                new TcpConnection(new TcpClientAdaptee(tcpClient)), new T(), new TU())));
             _tcpClientConnectedEvent.Set();
         }
     }

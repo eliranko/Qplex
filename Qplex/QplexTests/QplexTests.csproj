@@ -64,6 +64,7 @@
     <Compile Include="Helper.cs" />
     <Compile Include="LayersTests\NetworkLayerTests.cs" />
     <Compile Include="MessagesTests\HandlersTests\QueueMessagesIteratorTests.cs" />
+    <Compile Include="NetworkingTests\ConnectionTests\TcpConnectionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

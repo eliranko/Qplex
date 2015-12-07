@@ -58,6 +58,10 @@
     <Compile Include="Communication\Handlers\IDispatcher.cs" />
     <Compile Include="Communication\Handlers\IDispatcherThread.cs" />
     <Compile Include="Container.cs" />
+    <Compile Include="Networking\Connection\Adapters\INetworkStream.cs" />
+    <Compile Include="Networking\Connection\Adapters\ITcpClient.cs" />
+    <Compile Include="Networking\Connection\Adapters\NetworkStreamAdaptee.cs" />
+    <Compile Include="Networking\Connection\Adapters\TcpClientAdaptee.cs" />
     <Compile Include="Networking\FramingAlgorithms\Frame.cs" />
     <Compile Include="Networking\FramingAlgorithms\FramingAlgorithmInt.cs" />
     <Compile Include="Layers\NetworkLayer.cs" />
