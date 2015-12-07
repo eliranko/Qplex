@@ -200,7 +200,7 @@ namespace Qplex.Communication.Handlers
         {
             var messageHandler = methodInfo.GetCustomAttributes(typeof (MessageHandler)).First() as MessageHandler;
             if (messageHandler == null)
-                Qplex.Instance.CloseApplication($"Fatal error getting thread handler name of method: {methodInfo.Name}");
+                StaticQplex.CloseApplication($"Fatal error getting thread handler name of method: {methodInfo.Name}");
 
 // ReSharper disable once PossibleNullReferenceException
             return (methodInfo.GetCustomAttributes(typeof(MessageHandler)).First() as MessageHandler).Name;
@@ -216,18 +216,18 @@ namespace Qplex.Communication.Handlers
 
             if (parameters.Count() > 1 || !parameters.Any())
             {
-                Qplex.Instance.CloseApplication($"MessageHandler {methodInfo.Name} should have 1 parameter!");
+                StaticQplex.CloseApplication($"MessageHandler {methodInfo.Name} should have 1 parameter!");
             }
 
             if (parameters.First().ParameterType != typeof (Message)  &&
                 !(parameters.First().ParameterType.IsSubclassOf(typeof(Message))))
             {
-                Qplex.Instance.CloseApplication($"MessageHandler {methodInfo.Name} parameter should inherit Message!");
+                StaticQplex.CloseApplication($"MessageHandler {methodInfo.Name} parameter should inherit Message!");
             }
 
             if (methodInfo.ReturnType != typeof (void))
             {
-                Qplex.Instance.CloseApplication($"MessageHandler {methodInfo.Name} return type should be void!");
+                StaticQplex.CloseApplication($"MessageHandler {methodInfo.Name} return type should be void!");
             }
         }
 

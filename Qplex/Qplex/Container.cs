@@ -59,7 +59,7 @@ namespace Qplex
             {
                 if (!layer.Init())
                 {
-                    Qplex.Instance.CloseApplication($"The layer {layer.GetType().FullName} failed to initialize!");
+                    StaticQplex.CloseApplication($"The layer {layer.GetType().FullName} failed to initialize!");
                 }
             }
         }
@@ -73,7 +73,7 @@ namespace Qplex
             {
                 if (!layer.Start())
                 {
-                    Qplex.Instance.CloseApplication($"The layer {layer.GetType().FullName} failed to start!");
+                    StaticQplex.CloseApplication($"The layer {layer.GetType().FullName} failed to start!");
                 }
             }
         }

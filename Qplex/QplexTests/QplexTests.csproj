@@ -65,6 +65,8 @@
     <Compile Include="LayersTests\NetworkLayerTests.cs" />
     <Compile Include="MessagesTests\HandlersTests\QueueMessagesIteratorTests.cs" />
     <Compile Include="NetworkingTests\ConnectionTests\TcpConnectionTests.cs" />
+    <Compile Include="NetworkingTests\FramingAlgorithmsTests\FramingAlgorithmInt16Tests.cs" />
+    <Compile Include="NetworkingTests\FramingAlgorithmsTests\FramingAlgorithmInt32Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -76,6 +78,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

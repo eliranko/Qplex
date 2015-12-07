@@ -1,4 +1,5 @@
 ﻿using System;
+using NLog;
 
 namespace Qplex.Networking.FramingAlgorithms
 {
@@ -19,7 +20,10 @@ namespace Qplex.Networking.FramingAlgorithms
         /// <returns>Framed buffer</returns>
         public byte[] FrameBuffer(Frame frame)
         {
-            return WrapBufferWithHeader(frame.Buffer);
+            if (frame != null) return WrapBufferWithHeader(frame.Buffer);
+
+            StaticQplex.Logger.Log(LogLevel.Error, "FramingAlgorithmInt: Received null frame");
+            return new byte[0];
         }
 
         /// <summary>
@@ -29,7 +33,10 @@ namespace Qplex.Networking.FramingAlgorithms
         /// <returns>Frame</returns>
         public Frame UnframeBuffer(byte[] buffer)
         {
-            return new Frame(UnwrapBufferFromHeader(buffer));
+            if (buffer != null) return new Frame(UnwrapBufferFromHeader(buffer));
+
+            StaticQplex.Logger.Log(LogLevel.Error, "FramingAlgorithmInt: Received null buffer");
+            return new Frame(new byte[0]);
         }
 
         /// <summary>
