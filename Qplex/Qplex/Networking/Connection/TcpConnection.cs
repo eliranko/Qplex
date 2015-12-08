@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using NLog;
 using Qplex.Communication.Handlers;
 using Qplex.Messages.Networking.Connection;
-using Qplex.Networking.Connection.Adapters;
+using Qplex.Networking.Connection.Adapters.Tcp;
 
 namespace Qplex.Networking.Connection
 {
@@ -232,12 +232,12 @@ namespace Qplex.Networking.Connection
             }
             catch (IOException)
             {
-                Log(LogLevel.Error, $"IOException when reading sokcet on {_ip}:{_port}");
+                Log(LogLevel.Error, $"IOException when reading socket on {_ip}:{_port}");
                 Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.SocketClosed, null));
             }
             catch (ObjectDisposedException)
             {
-                Log(LogLevel.Error, $"ObjectDisposedException when reading sokcet on {_ip}:{_port}");
+                Log(LogLevel.Error, $"ObjectDisposedException when reading socket on {_ip}:{_port}");
                 Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.ClientDisposed, null));
             }
 

@@ -9,7 +9,8 @@ using Qplex.Communication.Channels;
 using Qplex.Messages;
 using Qplex.Messages.Networking.Connection;
 using Qplex.Networking.Connection;
-using Qplex.Networking.Connection.Adapters;
+using Qplex.Networking.Connection.Adapters.NetworkStream;
+using Qplex.Networking.Connection.Adapters.Tcp;
 
 namespace QplexTests.NetworkingTests.ConnectionTests
 {

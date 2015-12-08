@@ -1,20 +1,20 @@
 ﻿using System;
-using System.Net.Sockets;
+using Qplex.Networking.Connection.Adapters.NetworkStream;
 
-namespace Qplex.Networking.Connection.Adapters
+namespace Qplex.Networking.Connection.Adapters.Stream
 {
     /// <summary>
     /// Network stream adaptee
     /// </summary>
     public class NetworkStreamAdaptee : INetworkStream
     {
-        private readonly NetworkStream _networkStream;
+        private readonly System.Net.Sockets.NetworkStream _networkStream;
 
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="networkStream"></param>
-        public NetworkStreamAdaptee(NetworkStream networkStream)
+        public NetworkStreamAdaptee(System.Net.Sockets.NetworkStream networkStream)
         {
             _networkStream = networkStream;
         }

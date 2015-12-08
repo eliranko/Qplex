@@ -5,7 +5,7 @@ using System.Threading;
 using NLog;
 using Qplex.Messages.Networking;
 using Qplex.Networking.Connection;
-using Qplex.Networking.Connection.Adapters;
+using Qplex.Networking.Connection.Adapters.Tcp;
 using Qplex.Networking.FramingAlgorithms;
 using Qplex.Networking.MessageFactories;
 using Qplex.Networking.Parsers;

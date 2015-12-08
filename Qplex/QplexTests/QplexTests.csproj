@@ -65,6 +65,7 @@
     <Compile Include="LayersTests\NetworkLayerTests.cs" />
     <Compile Include="MessagesTests\HandlersTests\QueueMessagesIteratorTests.cs" />
     <Compile Include="NetworkingTests\ConnectionTests\TcpConnectionTests.cs" />
+    <Compile Include="NetworkingTests\ConnectionTests\UdpConnectionTests.cs" />
     <Compile Include="NetworkingTests\FramingAlgorithmsTests\FramingAlgorithmInt16Tests.cs" />
     <Compile Include="NetworkingTests\FramingAlgorithmsTests\FramingAlgorithmInt32Tests.cs" />
     <Compile Include="NetworkingTests\NetServiceTests\ClientNetServiceTests.cs" />

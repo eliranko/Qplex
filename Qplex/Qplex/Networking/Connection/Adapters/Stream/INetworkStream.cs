@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Qplex.Networking.Connection.Adapters
+namespace Qplex.Networking.Connection.Adapters.NetworkStream
 {
     /// <summary>
     /// Provides the underlying stream of data for network access.

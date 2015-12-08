@@ -1,13 +1,18 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using Qplex.Networking.Connection.Adapters.NetworkStream;
+using Qplex.Networking.Connection.Adapters.Stream;
 
-namespace Qplex.Networking.Connection.Adapters
+namespace Qplex.Networking.Connection.Adapters.Tcp
 {
     /// <summary>
-    /// Tcp client adapter
+    /// Tcp client adaptee
     /// </summary>
-    public interface ITcpClient
+    internal sealed class TcpClientAdaptee : ITcpClient
     {
+        private readonly TcpClient _tcpClient;
+        private INetworkStream _networkStream;
+
         /// <summary>
         /// Gets a value indicating whether the underlying System.Net.Sockets.Socket for
         /// a System.Net.Sockets.TcpClient is connected to a remote host.
@@ -16,13 +21,13 @@ namespace Qplex.Networking.Connection.Adapters
         /// true if the System.Net.Sockets.TcpClient.Client socket was connected to a remote
         /// resource as of the most recent operation; otherwise, false.
         /// </returns>
-        bool Connected { get; }
+        public bool Connected => _tcpClient.Connected;
 
         /// <summary>
         /// Gets or sets the underlying System.Net.Sockets.Socket.
         /// </summary>
         /// <returns>The underlying network System.Net.Sockets.Socket.</returns>
-        Socket Client { get; }
+        public Socket Client => _tcpClient.Client;
 
         /// <summary>
         /// Gets the remote ip
@@ -34,7 +39,7 @@ namespace Qplex.Networking.Connection.Adapters
         /// The System.Net.Sockets.Socket has been closed.
         /// </exception>
         /// <returns>The ip with which the System.Net.Sockets.Socket is communicating.</returns>
-        IPAddress Ip { get; }
+        public IPAddress Ip => ((IPEndPoint)Client.RemoteEndPoint)?.Address;
 
         /// <summary>
         /// Gets the remote pot
@@ -46,7 +51,24 @@ namespace Qplex.Networking.Connection.Adapters
         /// The System.Net.Sockets.Socket has been closed.
         /// </exception>
         /// <returns>The port with which the System.Net.Sockets.Socket is communicating.</returns>
-        int Port { get; }
+        public int Port => ((IPEndPoint)Client.RemoteEndPoint).Port;
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        public TcpClientAdaptee()
+        {
+            _tcpClient = new TcpClient();
+        }
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="tcpClient">Tcp client</param>
+        public TcpClientAdaptee(TcpClient tcpClient)
+        {
+            _tcpClient = tcpClient;
+        }
 
         /// <summary>
         /// Connects the client to a remote TCP host using the specified IP address and port
@@ -67,13 +89,19 @@ namespace Qplex.Networking.Connection.Adapters
         /// </exception>
         /// <param name="address">The System.Net.IPAddress of the host to which you intend to connect.</param>
         /// <param name="port">The port number to which you intend to connect.</param>
-        void Connect(IPAddress address, int port);
+        public void Connect(IPAddress address, int port)
+        {
+            _tcpClient.Connect(address, port);
+        }
 
         /// <summary>
         /// Disposes this System.Net.Sockets.TcpClient instance and requests that the underlying
         ///     TCP connection be closed.
         /// </summary>
-        void Close();
+        public void Close()
+        {
+            _tcpClient.Close();
+        }
 
         /// <summary>
         /// Returns the System.Net.Sockets.NetworkStream used to send and receive data.
@@ -85,6 +113,9 @@ namespace Qplex.Networking.Connection.Adapters
         /// The System.Net.Sockets.TcpClient has been closed.
         /// </exception>
         /// <returns>The underlying System.Net.Sockets.NetworkStream.</returns>
-        INetworkStream GetStream();
+        public INetworkStream GetStream()
+        {
+            return _networkStream ?? (_networkStream = new NetworkStreamAdaptee(_tcpClient.GetStream()));
+        }
     }
 }
