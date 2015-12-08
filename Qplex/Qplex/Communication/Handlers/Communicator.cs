@@ -22,6 +22,7 @@ namespace Qplex.Communication.Handlers
 
         private readonly IDispatcher _dispatcher;
         private readonly List<Message> _waitingList;
+        private readonly List<Type> _expectedList;
         private IList<Type> _initMessages;
 
         /// <summary>
@@ -32,6 +33,7 @@ namespace Qplex.Communication.Handlers
             _dispatcher = new Dispatcher<TIterator>($"{Name}Dispatcher");
             _initMessages = new List<Type>();
             _waitingList = new List<Message>();
+            _expectedList = new List<Type>();
         }
 
         /// <summary>
@@ -67,6 +69,12 @@ namespace Qplex.Communication.Handlers
         /// <param name="message">New received message</param>
         public void NewMessage(Message message)
         {
+            var messageType = message.GetType();
+
+            //Remove message from expected list, if expected
+            if (_expectedList.Contains(messageType))
+                _expectedList.Remove(messageType);
+
             //Dispatch message if init queue is empty
             if (!_initMessages.Any())
                 _dispatcher.Dispatch(message);
@@ -78,7 +86,6 @@ namespace Qplex.Communication.Handlers
             //Dispatch init message
             else
             {
-                var messageType = message.GetType();
                 Log(LogLevel.Trace, $"Received initial message of type: {messageType.Name}");
                 _initMessages.Remove(messageType);
                 _dispatcher.Dispatch(message);
@@ -139,6 +146,30 @@ namespace Qplex.Communication.Handlers
             }
             Log(LogLevel.Trace, $"Invoking given action on message: {message.Name}");
             Task.Factory.StartNew(() => action.Invoke(message));
+        }
+
+        /// <summary>
+        /// Expect a message
+        /// </summary>
+        /// <typeparam name="TMessage">Type of message expected</typeparam>
+        /// <param name="timeout">Milliseconds until the action is invoked</param>
+        /// <param name="errorMessage">The error message to action is invoked with</param>
+        /// <param name="timeoutAction">The action to invoke when timeout expires</param>
+        public void Expect<TMessage>(int timeout, Message errorMessage, Action<Message> timeoutAction)
+            where TMessage : Message
+        {
+            var expectedMessageType = typeof(TMessage);
+            _expectedList.Add(expectedMessageType);
+
+            Task.Factory.StartNew(() =>
+            {
+                Thread.Sleep(timeout);
+                if(!_expectedList.Contains(expectedMessageType)) return;
+
+                Log(LogLevel.Trace,
+                    $"Timeout for the expected message {expectedMessageType.Name} has expired. Invoking it's handler.");
+                timeoutAction.Invoke(errorMessage);
+            });
         }
 
         #region Reflection

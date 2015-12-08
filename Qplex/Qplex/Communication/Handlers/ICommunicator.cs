@@ -48,5 +48,14 @@ namespace Qplex.Communication.Handlers
         /// Handle message if an handler exists, otherwise invoke action with message
         /// </summary>
         void TunnelMessage(Message message, Action<Message> action);
+
+        /// <summary>
+        /// Expect a message
+        /// </summary>
+        /// <typeparam name="TMessage">Type of message expected</typeparam>
+        /// <param name="timeout">The timeout until the action is invoked</param>
+        /// <param name="errorMessage">The error message to action is invoked with</param>
+        /// <param name="timeoutAction">The action to invoke incase of failure</param>
+        void Expect<TMessage>(int timeout, Message errorMessage, Action<Message> timeoutAction) where TMessage : Message;
     }
 }

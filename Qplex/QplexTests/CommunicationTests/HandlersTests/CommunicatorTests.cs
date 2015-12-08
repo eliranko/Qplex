@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Qplex.Attributes;
@@ -148,6 +150,36 @@ namespace QplexTests.CommunicationTests.HandlersTests
             _communicator.TunnelMessage(_message, message => { });
 
             _dispatcher.Verify();
+        }
+
+        #endregion
+
+        #region Expect
+
+        [TestMethod]
+        public void ExpectDoesntInvokeActionWhenMessageArrivesBeforeTimeoutExpires()
+        {
+            var action = new Action<Message>(message => Assert.Fail("Action should not be called!"));
+            _communicator.Expect<MockMessage>(300, new MockMessage2(), action);
+
+            Thread.Sleep(100);
+            _communicator.NewMessage(new MockMessage());
+            Thread.Sleep(200);
+        }
+
+        [TestMethod]
+        public void ExpectInvokesActionWhenTimeoutExceeds()
+        {
+            var actionCalled = false;
+            var action = new Action<Message>(message => actionCalled = true);
+            _communicator.Expect<MockMessage>(5, new MockMessage2(), action);
+
+            //TODO: Find a better way to test time-dependant methods
+            Task.Factory.StartNew(() =>
+            {
+                Thread.Sleep(200);
+                Assert.IsTrue(actionCalled);
+            });
         }
 
         #endregion
