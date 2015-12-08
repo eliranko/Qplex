@@ -26,5 +26,26 @@
         {
             return $"NewIncomingMessage with message: {Message}";
         }
+
+        /// <summary>
+        /// Equals
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            var newMessage = obj as NewIncomingMessage;
+            return newMessage != null && Message.Equals(newMessage.Message);
+        }
+
+        /// <summary>
+        /// Hash code
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+// ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
+            return base.GetHashCode();
+        }
     }
 }

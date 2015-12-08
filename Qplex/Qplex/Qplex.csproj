@@ -83,6 +83,7 @@
     <Compile Include="Networking\Listeners\IListener.cs" />
     <Compile Include="Networking\Listeners\Listener.cs" />
     <Compile Include="Networking\NetService\ClientNetService.cs" />
+    <Compile Include="Networking\NetService\IListenerNetService.cs" />
     <Compile Include="Networking\NetService\INetService.cs" />
     <Compile Include="Networking\NetService\ListenerNetService.cs" />
     <Compile Include="Networking\NetService\NetService.cs" />

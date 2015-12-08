@@ -109,6 +109,26 @@ namespace Qplex.Communication.Handlers
         }
 
         /// <summary>
+        /// Broadcast to given channels
+        /// </summary>
+        /// <param name="message">Message to broadcast</param>
+        /// <param name="channels">Channels that will receive the broadcast</param>
+        public void BroadcastTo(Message message, IEnumerable<IInternalChannel> channels)
+        {
+            foreach (var channel in channels)
+            {
+                if (!_channelsList.Contains(channel))
+                {
+                    Log(LogLevel.Warn, $"Received unfamiliar channel {channel.Name}. Ignoring broadcast request");
+                    continue;
+                }
+
+                Log(LogLevel.Trace, $"Broadcast message:{message.Name} to channel:{channel.Name}");
+                channel.Broadcast(message, TypeGuid);
+            }
+        }
+
+        /// <summary>
         /// Equals
         /// </summary>
         public override bool Equals(object obj)

@@ -1,7 +1,11 @@
-﻿using Qplex.Communication.Channels;
+﻿using System.Linq;
+using NLog;
+using Qplex.Attributes;
+using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
+using Qplex.Messages.Networking.Parser;
 
 namespace Qplex.Networking.NetService
 {
@@ -33,11 +37,23 @@ namespace Qplex.Networking.NetService
         public abstract void Send(Message message);
 
         /// <summary>
-        /// Broadcast message to protocols
+        /// Handle new incoming message
         /// </summary>
-        public void BroadcastToProtocols(Message message)
+        /// <param name="message">Incoming message</param>
+        [MessageHandler]
+        public void HandleNewIncomingMessage(NewIncomingMessage message)
         {
-            ServiceToProtocolChannel.Broadcast(message, TypeGuid);
+            Log(LogLevel.Trace, $"Tunneling new incoming message: {message}");
+            TunnelMessage(message.Message, BroadcastUpwards);
+        }
+
+        /// <summary>
+        /// Broadcast to all but the protocols
+        /// </summary>
+        protected void BroadcastUpwards(Message message)
+        {
+            Log(LogLevel.Trace, $"Broadcasting {message} upwards");
+            BroadcastTo(message, GetInternalChannels().Where(channel => !channel.Equals(ServiceToProtocolChannel)));
         }
     }
 

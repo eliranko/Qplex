@@ -67,6 +67,10 @@
     <Compile Include="NetworkingTests\ConnectionTests\TcpConnectionTests.cs" />
     <Compile Include="NetworkingTests\FramingAlgorithmsTests\FramingAlgorithmInt16Tests.cs" />
     <Compile Include="NetworkingTests\FramingAlgorithmsTests\FramingAlgorithmInt32Tests.cs" />
+    <Compile Include="NetworkingTests\NetServiceTests\ClientNetServiceTests.cs" />
+    <Compile Include="NetworkingTests\NetServiceTests\ListenerNetServiceTests.cs" />
+    <Compile Include="NetworkingTests\ParsersTests\ParserTests.cs" />
+    <Compile Include="NetworkingTests\ProtocolsTests\ProtocolTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

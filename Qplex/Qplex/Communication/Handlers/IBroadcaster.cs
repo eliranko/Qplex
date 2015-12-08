@@ -44,5 +44,12 @@ namespace Qplex.Communication.Handlers
         /// </summary>
         /// <param name="message">Message to broadcast</param>
         void Broadcast(Message message);
+
+        /// <summary>
+        /// Broadcast to given channels
+        /// </summary>
+        /// <param name="message">Message to broadcast</param>
+        /// <param name="channels">Channels that will receive the broadcast</param>
+        void BroadcastTo(Message message, IEnumerable<IInternalChannel> channels);
     }
 }

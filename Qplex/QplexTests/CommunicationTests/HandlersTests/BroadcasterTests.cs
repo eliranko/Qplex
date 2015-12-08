@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -112,6 +113,54 @@ namespace QplexTests.CommunicationTests.HandlersTests
             _broadcaster.SubscribeToChannel(_internalChannel.Object);
             _broadcaster.UnsubscribeFromChannel(_internalChannel.Object);
             _broadcaster.Broadcast(new MockMessage());
+        }
+
+        #endregion
+
+        #region BroadcastTo
+
+        [TestMethod]
+        public void BroadcastToBroadcastToChannels()
+        {
+            _internalChannel.Setup(channel => channel.Broadcast(It.IsAny<Message>(), It.IsAny<Guid>()))
+                .Throws(new Exception());
+            var internalMock = new Mock<IInternalChannel>();
+            internalMock.Setup(channel => channel.Broadcast(It.IsAny<Message>(), It.IsAny<Guid>())).Verifiable();
+
+            _broadcaster.SubscribeToChannel(_internalChannel.Object);
+            _broadcaster.SubscribeToChannel(internalMock.Object);
+            _broadcaster.BroadcastTo(_message, new List<IInternalChannel> { internalMock.Object });
+
+            internalMock.Verify();
+        }
+
+        [TestMethod]
+        public void BroadcastToDoesntBroadcastToUnknownChannels()
+        {
+            _internalChannel.Setup(channel => channel.Broadcast(It.IsAny<Message>(), It.IsAny<Guid>()))
+                .Throws(new Exception());
+            var internalMock = new Mock<IInternalChannel>();
+            internalMock.Setup(channel => channel.Broadcast(It.IsAny<Message>(), It.IsAny<Guid>())).Verifiable();
+            var internalMock2 = new Mock<IInternalChannel>();
+            internalMock2.Setup(channel => channel.Broadcast(It.IsAny<Message>(), It.IsAny<Guid>()))
+                .Throws(new Exception());
+
+            _broadcaster.SubscribeToChannel(_internalChannel.Object);
+            _broadcaster.SubscribeToChannel(internalMock.Object);
+            _broadcaster.BroadcastTo(_message, new List<IInternalChannel> {internalMock.Object, internalMock2.Object});
+
+            internalMock.Verify();
+        }
+
+        [TestMethod]
+        public void BroadcastToDoesntBroadcastToUnsubscribedChannel()
+        {
+            _internalChannel.Setup(channel => channel.Broadcast(It.IsAny<Message>(), It.IsAny<Guid>()))
+                .Throws(new Exception("Broadcast to unsubscribed channel"));
+
+            _broadcaster.SubscribeToChannel(_internalChannel.Object);
+            _broadcaster.UnsubscribeFromChannel(_internalChannel.Object);
+            _broadcaster.BroadcastTo(new MockMessage(), new List<IInternalChannel> {_internalChannel.Object});
         }
 
         #endregion

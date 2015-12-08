@@ -1,5 +1,4 @@
 ﻿using System.Threading;
-using NLog;
 using Qplex.Communication.Handlers;
 
 namespace Qplex.Networking.Listeners

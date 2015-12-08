@@ -105,8 +105,9 @@ namespace Qplex.Networking.Parsers
         {
             Log(LogLevel.Trace, $"Handling {message}");
             //TODO: Handle socket failure
-            Broadcast(
-                new NewIncomingMessage(_messageFactory.Deserialize(_framingAlgorithm.UnframeBuffer(message.Buffer))));
+            if (message.ConnectionSocketStatus == ConnectionSocketStatus.Success)
+                Broadcast(
+                    new NewIncomingMessage(_messageFactory.Deserialize(_framingAlgorithm.UnframeBuffer(message.Buffer))));
         }
 
         /// <summary>

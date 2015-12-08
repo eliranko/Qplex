@@ -16,7 +16,7 @@ namespace Qplex.Networking.NetService
     /// </summary>
     /// <typeparam name="TIterator">Message iterator</typeparam>
     /// <typeparam name="TProtocol">Protocol</typeparam>
-    public class ListenerNetService<TIterator, TProtocol> : NetService<TIterator> 
+    public class ListenerNetService<TIterator, TProtocol> : NetService<TIterator>, IListenerNetService
         where TIterator : IMessagesIterator, new() where TProtocol : IProtocol, new()
     {
         /// <summary>

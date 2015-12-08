@@ -107,7 +107,7 @@ namespace Qplex.Networking.Protocols
         public void HandleNewIncomingMessage(NewIncomingMessage message)
         {
             Log(LogLevel.Trace, $"Tunneling {message}");
-            TunnelMessage(message, BroadcastToNetService);
+            TunnelMessage(message, BroadcastUpwards);
         }
 
         /// <summary>
@@ -124,10 +124,10 @@ namespace Qplex.Networking.Protocols
 
         #region Helpers
 
-        private void BroadcastToNetService(Message message)
+        private void BroadcastUpwards(Message message)
         {
             foreach (var channel in GetInternalChannels().Where(channel => !channel.Equals(_protocolToParserChannel)))
-                channel.Broadcast(message, TypeGuid);
+                channel.Broadcast(new NewIncomingMessage(message), TypeGuid);
         }
 
         #endregion
