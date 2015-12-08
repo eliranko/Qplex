@@ -52,10 +52,22 @@ namespace Qplex.Communication.Handlers
         /// <summary>
         /// Expect a message
         /// </summary>
-        /// <typeparam name="TMessage">Type of message expected</typeparam>
+        /// <typeparam name="TExpectedMessage">Type of message expected</typeparam>
         /// <param name="timeout">The timeout until the action is invoked</param>
         /// <param name="errorMessage">The error message to action is invoked with</param>
         /// <param name="timeoutAction">The action to invoke incase of failure</param>
-        void Expect<TMessage>(int timeout, Message errorMessage, Action<Message> timeoutAction) where TMessage : Message;
+        void Expect<TExpectedMessage>(int timeout, Message errorMessage, Action<Message> timeoutAction)
+            where TExpectedMessage : Message;
+
+        /// <summary>
+        /// Expect a message
+        /// </summary>
+        /// <typeparam name="TExpectedMessage">Type of message expected</typeparam>
+        /// <param name="broadcastMessage"></param>
+        /// <param name="timeout">The timeout until the action is invoked</param>
+        /// <param name="errorMessage">The error message to action is invoked with</param>
+        /// <param name="timeoutAction">The action to invoke incase of failure</param>
+        void BroadcastAndExpect<TExpectedMessage>(Message broadcastMessage, int timeout, Message errorMessage,
+            Action<Message> timeoutAction) where TExpectedMessage : Message;
     }
 }

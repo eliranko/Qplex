@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Qplex.Attributes;
+using Qplex.Communication.Channels;
 using Qplex.Communication.Handlers;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
@@ -40,6 +42,7 @@ namespace QplexTests.CommunicationTests.HandlersTests
     {
         private ICommunicator _communicator;
         private Mock<IDispatcher> _dispatcher;
+        private Mock<IInternalChannel> _channelMock;
         private Message _message;
 
         [TestInitialize]
@@ -49,6 +52,9 @@ namespace QplexTests.CommunicationTests.HandlersTests
             _dispatcher = new Mock<IDispatcher>();
             _communicator = new Communicator<QueueMessagesIterator>();
             OverrideDisaptcher(_communicator);
+
+            _channelMock = new Mock<IInternalChannel>();
+            _communicator.SubscribeToChannel(_channelMock.Object);
         }
 
         #region Start
@@ -174,12 +180,46 @@ namespace QplexTests.CommunicationTests.HandlersTests
             var action = new Action<Message>(message => actionCalled = true);
             _communicator.Expect<MockMessage>(5, new MockMessage2(), action);
 
-            //TODO: Find a better way to test time-dependant methods
-            Task.Factory.StartNew(() =>
-            {
-                Thread.Sleep(200);
-                Assert.IsTrue(actionCalled);
-            });
+            Thread.Sleep(500);
+            Assert.IsTrue(actionCalled);
+        }
+
+        #endregion
+
+        #region BroadcastAndExpect
+
+        [TestMethod]
+        public void BroadcastAndExpectBroadcastsMessage()
+        {
+            _channelMock.Setup(
+                channel =>
+                    channel.Broadcast(It.IsAny<MockMessage>(), It.Is<Guid>(guid => guid == _communicator.TypeGuid)))
+                .Verifiable();
+            _communicator.BroadcastAndExpect<MockMessage2>(new MockMessage(), 100, new MockMessage(), message => { });
+
+            _channelMock.Verify();
+        }
+
+        [TestMethod]
+        public void BroadcastAndExpectDoesntInvokeActionWhenMessageArrivesBeforeTimeoutExpires()
+        {
+            var action = new Action<Message>(message => Assert.Fail("Action should not be called!"));
+            _communicator.BroadcastAndExpect<MockMessage2>(new MockMessage(), 300, new MockMessage(), action);
+
+            Thread.Sleep(100);
+            _communicator.NewMessage(new MockMessage2());
+            Thread.Sleep(200);
+        }
+
+        [TestMethod]
+        public void BroadcastAndExpectInvokesActionWhenTimeoutExceeds()
+        {
+            var actionCalled = false;
+            var action = new Action<Message>(message => actionCalled = true);
+            _communicator.BroadcastAndExpect<MockMessage2>(new MockMessage(), 5, new MockMessage(), action);
+
+            Thread.Sleep(500);
+            Assert.IsTrue(actionCalled);
         }
 
         #endregion
