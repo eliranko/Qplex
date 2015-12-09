@@ -9,6 +9,16 @@ namespace Qplex.Networking.Connection.Adapters.Udp
     /// </summary>
     public interface IUdpClient
     {
+        /// <summary>
+        /// Remote host ip address
+        /// </summary>
+        IPAddress Ip { get; }
+
+        /// <summary>
+        /// Remote host port
+        /// </summary>
+        int Port { get; }
+
         /// Summary:
         ///     Establishes a default remote host using the specified network endpoint.
         ///

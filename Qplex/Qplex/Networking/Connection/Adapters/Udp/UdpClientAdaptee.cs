@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 
 namespace Qplex.Networking.Connection.Adapters.Udp
 {
@@ -14,6 +13,8 @@ namespace Qplex.Networking.Connection.Adapters.Udp
         /// Udp client
         /// </summary>
         private readonly UdpClient _udpClient;
+
+        private IPEndPoint _endPoint;
 
         /// Summary:
         ///     Initializes a new instance of the System.Net.Sockets.UdpClient class and binds
@@ -33,8 +34,19 @@ namespace Qplex.Networking.Connection.Adapters.Udp
         ///     information.
         public UdpClientAdaptee(IPEndPoint localEp)
         {
+            _endPoint = localEp;
             _udpClient = new UdpClient(localEp);
         }
+
+        /// <summary>
+        /// Remote host ip address
+        /// </summary>
+        public IPAddress Ip => _endPoint.Address;
+
+        /// <summary>
+        /// Remote host port
+        /// </summary>
+        public int Port => _endPoint.Port;
 
         /// Summary:
         ///     Establishes a default remote host using the specified network endpoint.
@@ -56,6 +68,7 @@ namespace Qplex.Networking.Connection.Adapters.Udp
         ///     The System.Net.Sockets.UdpClient is closed.
         public void Connect(IPEndPoint endPoint)
         {
+            _endPoint = endPoint;
             _udpClient.Connect(endPoint);
         }
 

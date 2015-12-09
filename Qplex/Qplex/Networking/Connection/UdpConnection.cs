@@ -38,14 +38,13 @@ namespace Qplex.Networking.Connection
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="ip">Ip address</param>
-        /// <param name="port">Port</param>
-        public UdpConnection(IPAddress ip, int port)
+        /// <param name="udpClient">Client</param>
+        public UdpConnection(IUdpClient udpClient)
         {
-            _ip = ip;
-            _port = port;
+            _ip = udpClient.Ip;
+            _port = udpClient.Port;
             _endPoint = new IPEndPoint(_ip, _port);
-            _udpClient = new UdpClientAdaptee(_endPoint);
+            _udpClient = udpClient;
         }
 
         /// <summary>
@@ -57,7 +56,7 @@ namespace Qplex.Networking.Connection
             Log(LogLevel.Trace, $"Udp client trying to set default remote host to {_ip}:{_port}");
             try
             {
-                _udpClient.Connect(new IPEndPoint(_ip, _port));
+                _udpClient.Connect(_endPoint);
                 Log(LogLevel.Debug, $"Udp client set remote host {_ip}:{_port} successfully");
                 BeginReceiveMessage();
                 return ConnectionConnectStatus.Success;
