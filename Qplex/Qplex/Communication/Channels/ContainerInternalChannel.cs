@@ -6,10 +6,18 @@ using Qplex.Messages;
 namespace Qplex.Communication.Channels
 {
     /// <summary>
-    /// Channel is a tune which passes messages to all of its subscribers (publis/subscribe).
+    /// This channel as an owner (the container) which receives all of the message
+    /// broadcasted from the other subscribers, and they receive all of the message that 
+    /// the owner broadcasts.
+    /// The subscribers cannot pass messages between themself.
     /// </summary>
-    public sealed class InternalChannel : LogWrapper, IInternalChannel
+    public class ContainerInternalChannel : LogWrapper, IInternalChannel
     {
+        /// <summary>
+        /// Container
+        /// </summary>
+        private readonly IBroadcaster _container;
+
         /// <summary>
         /// Subscribers
         /// </summary>
@@ -23,8 +31,10 @@ namespace Qplex.Communication.Channels
         /// <summary>
         /// Ctor
         /// </summary>
-        public InternalChannel()
+        /// <param name="container">Container</param>
+        public ContainerInternalChannel(IBroadcaster container)
         {
+            _container = container;
             Name = GetType().Name;
             Logger = LogManager.GetLogger(Name);
             _subscribersList = new BroadcasterContainer();
@@ -33,11 +43,13 @@ namespace Qplex.Communication.Channels
         /// <summary>
         /// Ctor
         /// </summary>
+        /// <param name="container">Container</param>
         /// <param name="name">Channel's name</param>
-        public InternalChannel(string name)
+        public ContainerInternalChannel(IBroadcaster container, string name)
         {
+            _container = container;
             Name = name;
-            Logger = LogManager.GetLogger(name);
+            Logger = LogManager.GetLogger(Name);
             _subscribersList = new BroadcasterContainer();
         }
 
@@ -51,6 +63,12 @@ namespace Qplex.Communication.Channels
             if (broadcaster == null)
             {
                 Log(LogLevel.Error, "Tried to subscribe null broadcaster. Ignoring request.");
+                return false;
+            }
+
+            if (broadcaster.Equals(_container))
+            {
+                Log(LogLevel.Warn, "Tried to subscribe the container. ignoring request");
                 return false;
             }
 
@@ -75,8 +93,14 @@ namespace Qplex.Communication.Channels
                 return false;
             }
 
+            if (broadcaster.Equals(_container))
+            {
+                Log(LogLevel.Warn, "Tried to unsubscribe the container. ignoring request");
+                return false;
+            }
+
             var status = _subscribersList.Remove(broadcaster);
-            if(status)
+            if (status)
                 Log(LogLevel.Trace, $"Unsubscribed {broadcaster.Name} from channel");
             else
                 Log(LogLevel.Warn, $"Failed unsubscribing {broadcaster.Name} from channel");
@@ -84,15 +108,22 @@ namespace Qplex.Communication.Channels
         }
 
         /// <summary>
-        /// Broadcast message to all but the caller
+        /// Broadcast message to all but the publisher
         /// </summary>
         /// <param name="message">Message</param>
-        /// <param name="callerGuid">Caller guid</param>
+        /// <param name="callerGuid">Caller's guid</param>
         public void Broadcast(Message message, Guid callerGuid)
         {
             if (message == null)
             {
                 Log(LogLevel.Error, "Received null message to broadcast");
+                return;
+            }
+
+            if (_container.TypeGuid != callerGuid)
+            {
+                Log(LogLevel.Trace, $"Broadcasted {message.Name} to the container");
+                _container.Broadcast(message);
                 return;
             }
 
@@ -110,7 +141,7 @@ namespace Qplex.Communication.Channels
         /// <returns></returns>
         public override bool Equals(object obj)
         {
-            var internalChannel = obj as InternalChannel;
+            var internalChannel = obj as ContainerInternalChannel;
             if (internalChannel == null) return false;
 
             return GetType().GUID == internalChannel.GetType().GUID;
@@ -122,7 +153,7 @@ namespace Qplex.Communication.Channels
         /// <returns></returns>
         public override int GetHashCode()
         {
-// ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
+            // ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
             return base.GetHashCode();
         }
 
@@ -132,7 +163,7 @@ namespace Qplex.Communication.Channels
         /// <returns></returns>
         public override string ToString()
         {
-            return $"InternalChannel {Name}";
+            return $"ContainerInternalChannel {Name}";
         }
     }
 }

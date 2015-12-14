@@ -204,7 +204,8 @@ namespace Qplex.Networking.Connection
 
             Log(LogLevel.Trace, $"Receive message complete. Read {bytesRead} bytes.");
             _headerArray.CopyTo(_bufferArray, 0);
-            Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Success, _bufferArray));
+            Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Success, _bufferArray,
+                _tcpClient.Client.LocalEndPoint as IPEndPoint, null));
 
             BeginReceiveMessage();
         }
@@ -233,12 +234,12 @@ namespace Qplex.Networking.Connection
             catch (IOException)
             {
                 Log(LogLevel.Error, $"IOException when reading socket on {_ip}:{_port}");
-                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.SocketClosed, null));
+                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.SocketClosed, null, null, null));
             }
             catch (ObjectDisposedException)
             {
                 Log(LogLevel.Error, $"ObjectDisposedException when reading socket on {_ip}:{_port}");
-                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.ClientDisposed, null));
+                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.ClientDisposed, null, null, null));
             }
 
             return bytesRead;

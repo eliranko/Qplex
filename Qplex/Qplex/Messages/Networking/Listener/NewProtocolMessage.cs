@@ -1,18 +1,12 @@
 ﻿using System.Net;
-using Qplex.Networking.Parsers;
 
-namespace Qplex.Messages.Networking
+namespace Qplex.Messages.Networking.Listener
 {
     /// <summary>
-    /// New connection message
+    /// New protocol created message
     /// </summary>
-    public class NewConnectionMessage : Message
+    public class NewProtocolMessage : Message
     {
-        /// <summary>
-        /// Network parser
-        /// </summary>
-        public IParser Parser { get; }
-
         /// <summary>
         /// Local ip end point of the connection
         /// </summary>
@@ -21,11 +15,9 @@ namespace Qplex.Messages.Networking
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="parser">Parser</param>
         /// <param name="localIpEndPoint">Local end point</param>
-        public NewConnectionMessage(IParser parser, IPEndPoint localIpEndPoint)
+        public NewProtocolMessage(IPEndPoint localIpEndPoint)
         {
-            Parser = parser;
             LocalIpEndPoint = localIpEndPoint;
         }
 
@@ -35,7 +27,7 @@ namespace Qplex.Messages.Networking
         /// <returns></returns>
         public override string ToString()
         {
-            return $"NewConnectionMessage with local end point {LocalIpEndPoint.Address}:{LocalIpEndPoint.Port}";
+            return $"NewProtocolMessage with end point {LocalIpEndPoint.Address}:{LocalIpEndPoint.Port}";
         }
     }
 }

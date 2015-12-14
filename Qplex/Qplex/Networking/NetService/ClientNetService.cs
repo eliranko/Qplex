@@ -23,7 +23,7 @@ namespace Qplex.Networking.NetService
         public ClientNetService(IProtocol protocol)
         {
             _protocol = protocol;
-            _protocol.SubscribeToChannel(ServiceToProtocolChannel);
+            SubscribeProtocol(_protocol);
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Qplex.Networking.NetService
     /// <summary>
     /// Client net service implements using queueu messages iterator
     /// </summary>
-    public class ClientNetService : ClientNetService<QueueMessagesIterator>
+    public sealed class ClientNetService : ClientNetService<QueueMessagesIterator>
     {
         /// <summary>
         /// Ctor

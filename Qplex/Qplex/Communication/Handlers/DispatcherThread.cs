@@ -123,5 +123,34 @@ namespace Qplex.Communication.Handlers
                 _messageHandlers[message.GetType()].Invoke(message);
             }
         }
+
+        /// <summary>
+        /// Equals
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            var dispatcherThread = obj as DispatcherThread;
+            return dispatcherThread != null && Name == dispatcherThread.Name;
+        }
+
+        /// <summary>
+        /// Get hash code
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// To string
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"Dispatcher thread {Name}";
+        }
     }
 }

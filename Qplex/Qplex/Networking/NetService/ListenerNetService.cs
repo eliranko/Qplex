@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using NLog;
 using Qplex.Attributes;
 using Qplex.Communication.Channels;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
 using Qplex.Messages.Networking;
+using Qplex.Messages.Networking.Listener;
 using Qplex.Networking.Listeners;
 using Qplex.Networking.Protocols;
 
@@ -30,6 +30,11 @@ namespace Qplex.Networking.NetService
         private readonly IListener _listener;
 
         /// <summary>
+        /// Listener service to listener channel
+        /// </summary>
+        private readonly IInternalChannel _serviceToListenerChannel;
+
+        /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="listener">Listener</param>
@@ -37,10 +42,10 @@ namespace Qplex.Networking.NetService
         {
             _listener = listener;
             _protocolsList = new List<TProtocol>();
-            var serviceToListenerChannel = new InternalChannel(
+            _serviceToListenerChannel = new InternalChannel(
                 $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToListenerChannel");
-            SubscribeToChannel(serviceToListenerChannel);
-            _listener.SubscribeToChannel(serviceToListenerChannel);
+            SubscribeToChannel(_serviceToListenerChannel);
+            _listener.SubscribeToChannel(_serviceToListenerChannel);
         }
 
         /// <summary>
@@ -78,7 +83,7 @@ namespace Qplex.Networking.NetService
         /// </summary>
         public override void Send(Message message)
         {
-            Log(LogLevel.Debug, $"Sending message:{message.GetType().Name}");
+            Log(LogLevel.Debug, $"Sending message:{message.Name}");
             foreach (var protocol in _protocolsList)
                 protocol.Send(message);
         }
@@ -89,10 +94,12 @@ namespace Qplex.Networking.NetService
         [MessageHandler]
         public void HandleNewConnectionMessage(NewConnectionMessage message)
         {
-            Log(LogLevel.Debug, "Handling new connection...");
+            Log(LogLevel.Debug, $"Handling new connection message: {message}");
             var protocol = new TProtocol();
             protocol.SetParser(message.Parser);
             AddProtocol(protocol);
+
+            Broadcast(new NewProtocolMessage(message.LocalIpEndPoint));
         }
 
         #region Helpers
@@ -103,7 +110,7 @@ namespace Qplex.Networking.NetService
         /// <param name="protocol">Protocol</param>
         private void AddProtocol(TProtocol protocol)
         {
-            protocol.SubscribeToChannel(ServiceToProtocolChannel);
+            SubscribeProtocol(protocol, _serviceToListenerChannel);
             _protocolsList.Add(protocol);
             protocol.Start();
         }
@@ -115,8 +122,7 @@ namespace Qplex.Networking.NetService
     /// Net service listener implemented with queue message iterator
     /// </summary>
     /// <typeparam name="TProtocol">Protocol</typeparam>
-    [SuppressMessage("ReSharper", "UnusedTypeParameter")]
-    public class ListenerNetService<TProtocol> : ListenerNetService<QueueMessagesIterator, TProtocol>
+    public sealed class ListenerNetService<TProtocol> : ListenerNetService<QueueMessagesIterator, TProtocol>
         where TProtocol : IProtocol, new()
     {
         /// <summary>

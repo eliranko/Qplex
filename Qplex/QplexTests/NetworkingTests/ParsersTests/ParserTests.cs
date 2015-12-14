@@ -107,7 +107,7 @@ namespace QplexTests.NetworkingTests.ParsersTests
             _channelMock.Setup(channel => channel.Broadcast(It.IsAny<NewIncomingMessage>(), It.IsAny<Guid>()))
                 .Verifiable();
             _parser.HandleConnectionBufferReceivedMessage(
-                new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Success, new byte[0]));
+                new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Success, new byte[0], null, null));
 
             _framingMock.Verify();
             _factoryMock.Verify();

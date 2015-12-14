@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using NLog;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
@@ -128,5 +129,38 @@ namespace Qplex.Communication.Handlers
         }
 
         #endregion
+
+        /// <summary>
+        /// Equals
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            var disptacher = obj as Dispatcher<TIterator>;
+            return disptacher != null && _name == disptacher._name && _threadsList.Equals(disptacher._threadsList);
+        }
+
+        /// <summary>
+        /// Get hash code
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// To string
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            var builder = new StringBuilder($"Dispatcher {_name} with threads:\n");
+            foreach (var dispatcherThread in _threadsList)
+                builder.Append("\t" + dispatcherThread);
+
+            return builder.ToString();
+        }
     }
 }

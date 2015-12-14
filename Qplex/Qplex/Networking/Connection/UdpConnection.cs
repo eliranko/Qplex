@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using NLog;
 using Qplex.Communication.Handlers;
 using Qplex.Messages.Networking.Connection;
-using Qplex.Networking.Connection.Adapters.Udp;
 
 namespace Qplex.Networking.Connection
 {
@@ -21,7 +20,12 @@ namespace Qplex.Networking.Connection
         /// <summary>
         /// Udp client
         /// </summary>
-        private readonly IUdpClient _udpClient;
+        private readonly UdpClient _udpClient;
+
+        /// <summary>
+        /// Local end point
+        /// </summary>
+        private readonly IPEndPoint _localEndPoint;
 
         /// <summary>
         /// Connection's ip
@@ -33,18 +37,19 @@ namespace Qplex.Networking.Connection
         /// </summary>
         private readonly int _port;
 
-        private IPEndPoint _endPoint;
+        private IPEndPoint _refEndPoint;
 
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="udpClient">Client</param>
-        public UdpConnection(IUdpClient udpClient)
+        public UdpConnection(UdpClient udpClient)
         {
-            _ip = udpClient.Ip;
-            _port = udpClient.Port;
-            _endPoint = new IPEndPoint(_ip, _port);
             _udpClient = udpClient;
+            _localEndPoint = _udpClient.Client.LocalEndPoint as IPEndPoint;
+            _ip = _localEndPoint.Address;
+            _port = _localEndPoint.Port;
+            _refEndPoint = new IPEndPoint(IPAddress.Any, 0);
         }
 
         /// <summary>
@@ -53,29 +58,8 @@ namespace Qplex.Networking.Connection
         /// <returns>Operation status</returns>
         public ConnectionConnectStatus ConnectAndReceive()
         {
-            Log(LogLevel.Trace, $"Udp client trying to set default remote host to {_ip}:{_port}");
-            try
-            {
-                _udpClient.Connect(_endPoint);
-                Log(LogLevel.Debug, $"Udp client set remote host {_ip}:{_port} successfully");
-                BeginReceiveMessage();
-                return ConnectionConnectStatus.Success;
-            }
-            catch (SocketException)
-            {
-                Log(LogLevel.Error, $"SocketException thrown when tried to set default remote {_ip}:{_port}");
-                return ConnectionConnectStatus.SocketError;
-            }
-            catch (ArgumentNullException)
-            {
-                Log(LogLevel.Error, $"ArgumentNullException thrown when tried to set default remote {_ip}:{_port}");
-                return ConnectionConnectStatus.NullAddress;
-            }
-            catch (ObjectDisposedException)
-            {
-                Log(LogLevel.Error, $"ObjectDisposedException thrown when tried to set default remote {_ip}:{_port}");
-                return ConnectionConnectStatus.ClientDisposed;
-            }
+            BeginReceiveMessage();
+            return ConnectionConnectStatus.Success;
         }
 
         /// <summary>
@@ -128,34 +112,35 @@ namespace Qplex.Networking.Connection
             Log(LogLevel.Trace, "Handling received message");
             try
             {
-                var bytes = _udpClient.EndReceive(asyncResult, ref _endPoint);
+                var bytes = _udpClient.EndReceive(asyncResult, ref _refEndPoint);
                 Log(LogLevel.Debug, $"Received buffer of length: {bytes.Length}");
-                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Success, bytes));
+                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Success, bytes, _localEndPoint,
+                    _refEndPoint));
             }
             catch (ArgumentNullException)
             {
                 Log(LogLevel.Error, $"ArgumentNullException when reading socket on {_ip}:{_port}");
-                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Error, null));
+                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Error, null, null, null));
             }
             catch (ArgumentException)
             {
                 Log(LogLevel.Error, $"ArgumentException when reading socket on {_ip}:{_port}");
-                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Error, null));
+                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Error, null, null, null));
             }
             catch (SocketException)
             {
                 Log(LogLevel.Error, $"SocketException when reading socket on {_ip}:{_port}");
-                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.SocketClosed, null));
+                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.SocketClosed, null, null, null));
             }
             catch (ObjectDisposedException)
             {
                 Log(LogLevel.Error, $"ObjectDisposedException when reading socket on {_ip}:{_port}");
-                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.ClientDisposed, null));
+                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.ClientDisposed, null, null, null));
             }
             catch (InvalidOperationException)
             {
                 Log(LogLevel.Error, $"InvalidOperationException when reading socket on {_ip}:{_port}");
-                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Error, null));
+                Broadcast(new ConnectionBufferReceivedMessage(ConnectionSocketStatus.Error, null, null, null));
             }
         }
 

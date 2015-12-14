@@ -1,4 +1,6 @@
-﻿namespace Qplex.Messages.Networking.Parser
+﻿using System.Net;
+
+namespace Qplex.Messages.Networking.Parser
 {
     /// <summary>
     /// New message received from IConnection
@@ -11,20 +13,23 @@
         public Message Message { get; }
 
         /// <summary>
-        /// Ctor
+        /// Local end point the buffer was delivered too
         /// </summary>
-        public NewIncomingMessage(Message message)
-        {
-            Message = message;
-        }
+        public IPEndPoint LocalEndPoint { get; }
 
         /// <summary>
-        /// To string
+        /// Remote end point the buffer was delivered from
         /// </summary>
-        /// <returns></returns>
-        public override string ToString()
+        public IPEndPoint RemoteEndPoint { get; }
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        public NewIncomingMessage(Message message, IPEndPoint localEndPoint, IPEndPoint remotEndPoint)
         {
-            return $"NewIncomingMessage with message: {Message}";
+            Message = message;
+            LocalEndPoint = localEndPoint;
+            RemoteEndPoint = remotEndPoint;
         }
 
         /// <summary>
@@ -46,6 +51,16 @@
         {
 // ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
             return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// To string
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return
+                $"NewIncomingMessage received from remote {RemoteEndPoint.Address}:{RemoteEndPoint.Port} to local {LocalEndPoint.Address}:{LocalEndPoint.Port} with message: {Message}";
         }
     }
 }

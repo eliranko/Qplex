@@ -278,5 +278,34 @@ namespace Qplex.Communication.Handlers
         }
 
         #endregion
+
+        /// <summary>
+        /// Equals
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            var communicator = obj as Communicator<TIterator>;
+            return communicator != null && _dispatcher.Equals(communicator._dispatcher) && base.Equals(communicator);
+        }
+
+        /// <summary>
+        /// Get hash code
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// To string
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"Communicator {Name} with guid {TypeGuid}";
+        }
     }
 }

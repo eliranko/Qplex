@@ -15,12 +15,18 @@ namespace Qplex.Networking.Listeners
     /// <summary>
     /// Tcp listener
     /// </summary>
-    public class TcpListener<T, TU> : Listener where T : IMessageFactory, new() where TU : IFramingAlgorithm, new()
+    public class TcpListener<T, TU> : Listener 
+        where T : IMessageFactory, new() where TU : IFramingAlgorithm, new()
     {
         /// <summary>
         /// Tcp listener
         /// </summary>
         private readonly TcpListener _tcpListener;
+
+        /// <summary>
+        /// Local end point
+        /// </summary>
+        private readonly IPEndPoint _ipEndPoint;
 
         /// <summary>
         /// Indicates to stop listening
@@ -40,6 +46,7 @@ namespace Qplex.Networking.Listeners
         public TcpListener(IPAddress ip, int port)
         {
             _tcpListener = new TcpListener(ip, port);
+            _ipEndPoint = (IPEndPoint) _tcpListener.LocalEndpoint;
             _stopListening = false;
             _tcpClientConnectedEvent = new ManualResetEvent(false);
         }
@@ -49,7 +56,7 @@ namespace Qplex.Networking.Listeners
         /// </summary>
         public override void Stop()
         {
-            Log(LogLevel.Debug, "Stopping...");
+            Log(LogLevel.Debug, $"Stopping tcp listener on {_ipEndPoint.Address}:{_ipEndPoint.Port}");
             _stopListening = true;
             //Signal the listener thread to continue without a client connection, inorder to exit.
             _tcpClientConnectedEvent.Set();
@@ -84,14 +91,22 @@ namespace Qplex.Networking.Listeners
         /// <param name="asyncResult">Async result</param>
         private void AcceptTcpClient(IAsyncResult asyncResult)
         {
+            var localEndPoint = (IPEndPoint) _tcpListener.LocalEndpoint;
             Log(LogLevel.Debug, "Accepted connection on " +
-                                    $"{IPAddress.Parse(((IPEndPoint)_tcpListener.LocalEndpoint).Address.ToString())}" +
+                                    $"{IPAddress.Parse(localEndPoint.Address.ToString())}" +
                                     ":" +
-                                    $"{((IPEndPoint)_tcpListener.LocalEndpoint).Port}");
-            // ReSharper disable once PossibleNullReferenceException
-            var tcpClient = (asyncResult.AsyncState as TcpListener).EndAcceptTcpClient(asyncResult);
+                                    $"{localEndPoint.Port}");
+
+            var tcpListener = asyncResult.AsyncState as TcpListener;
+            if (tcpListener == null)
+            {
+                Log(LogLevel.Fatal, "Tcp listener async result was not a TcpListener");
+                return;
+            }
+            var tcpClient = tcpListener.EndAcceptTcpClient(asyncResult);
             Broadcast(new NewConnectionMessage(new Parser(
-                new TcpConnection(new TcpClientAdaptee(tcpClient)), new T(), new TU())));
+                new TcpConnection(new TcpClientAdaptee(tcpClient)), new T(), new TU()),
+                (IPEndPoint) tcpClient.Client.LocalEndPoint));
             _tcpClientConnectedEvent.Set();
         }
     }

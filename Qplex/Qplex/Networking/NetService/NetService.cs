@@ -6,6 +6,7 @@ using Qplex.Communication.Handlers;
 using Qplex.Messages;
 using Qplex.Messages.Handlers;
 using Qplex.Messages.Networking.Parser;
+using Qplex.Networking.Protocols;
 
 namespace Qplex.Networking.NetService
 {
@@ -19,14 +20,14 @@ namespace Qplex.Networking.NetService
         /// <summary>
         /// Layer to protocol channel
         /// </summary>
-        protected readonly InternalChannel ServiceToProtocolChannel;
+        protected readonly IInternalChannel ServiceToProtocolChannel;
 
         /// <summary>
         /// Ctor
         /// </summary>
         protected NetService()
         {
-            ServiceToProtocolChannel = new InternalChannel(
+            ServiceToProtocolChannel = new ContainerInternalChannel(this,
                 $"{GetType().FullName}{GetType().GUID.ToString().Substring(0, 4)}ToProtocolsChannel");
             SubscribeToChannel(ServiceToProtocolChannel);
         }
@@ -45,6 +46,17 @@ namespace Qplex.Networking.NetService
         {
             Log(LogLevel.Trace, $"Tunneling new incoming message: {message}");
             TunnelMessage(message.Message, BroadcastUpwards);
+        }
+
+        /// <summary>
+        /// Subscribe protocol to channels
+        /// </summary>
+        /// <param name="protocol">Protocl to subscribe</param>
+        /// <param name="exepctChannels">Exception channels the protocol won't subscribe too</param>
+        protected void SubscribeProtocol(IProtocol protocol, params IInternalChannel[] exepctChannels)
+        {
+            foreach (var internalChannel in GetInternalChannels().Except(exepctChannels))
+                protocol.SubscribeToChannel(internalChannel);
         }
 
         /// <summary>

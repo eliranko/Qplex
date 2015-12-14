@@ -124,10 +124,14 @@ namespace Qplex.Networking.Protocols
 
         #region Helpers
 
-        private void BroadcastUpwards(Message message)
+        /// <summary>
+        /// Broadcast message to 
+        /// </summary>
+        /// <param name="message"></param>
+        protected void BroadcastUpwards(Message message)
         {
             foreach (var channel in GetInternalChannels().Where(channel => !channel.Equals(_protocolToParserChannel)))
-                channel.Broadcast(new NewIncomingMessage(message), TypeGuid);
+                channel.Broadcast(message, TypeGuid);
         }
 
         #endregion

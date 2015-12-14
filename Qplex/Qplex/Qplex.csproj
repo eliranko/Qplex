@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\MessageHandler.cs" />
+    <Compile Include="Communication\Channels\ContainerInternalChannel.cs" />
     <Compile Include="Communication\Channels\IInternalChannel.cs" />
     <Compile Include="Communication\Channels\InternalChannel.cs" />
     <Compile Include="Communication\Handlers\Broadcaster.cs" />
@@ -58,12 +59,11 @@
     <Compile Include="Communication\Handlers\IDispatcher.cs" />
     <Compile Include="Communication\Handlers\IDispatcherThread.cs" />
     <Compile Include="Container.cs" />
+    <Compile Include="Messages\Networking\Listener\NewProtocolMessage.cs" />
     <Compile Include="Networking\Connection\Adapters\Stream\INetworkStream.cs" />
     <Compile Include="Networking\Connection\Adapters\Tcp\ITcpClient.cs" />
     <Compile Include="Networking\Connection\Adapters\Stream\NetworkStreamAdaptee.cs" />
     <Compile Include="Networking\Connection\Adapters\Tcp\TcpClientAdaptee.cs" />
-    <Compile Include="Networking\Connection\Adapters\Udp\IUdpClient.cs" />
-    <Compile Include="Networking\Connection\Adapters\Udp\UdpClientAdaptee.cs" />
     <Compile Include="Networking\Connection\UdpConnection.cs" />
     <Compile Include="Networking\FramingAlgorithms\Frame.cs" />
     <Compile Include="Networking\FramingAlgorithms\FramingAlgorithmInt.cs" />

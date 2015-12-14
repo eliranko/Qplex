@@ -147,5 +147,14 @@ namespace Qplex.Communication.Handlers
 // ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
             return base.GetHashCode();
         }
+
+        /// <summary>
+        /// To string
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"Broadcaster {Name} with guid {TypeGuid}";
+        }
     }
 }
